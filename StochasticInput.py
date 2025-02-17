@@ -2,7 +2,9 @@ import numpy as np
 from scipy.stats import maxwell
 import random
 
-def stochastic_initial_conditions(m,T,y_min,y_max,z_min,z_max):
+def stochastic_initial_conditions(m,T,y_min,y_max,z_length):
+    z_min = - int(z_length/2)
+    z_max = int(z_length/2)
     z =  random.randint(z_min, z_max) #generate random distance from left wall
     y = random.randint(y_min, y_max) #generate random altitude
     x = 0
@@ -24,8 +26,7 @@ T = 289  # Temperature in Kelvin
 m = 5.31e-26  # Mass of oxygem molecule (kg)
 y_min = 149597870691 #meters
 y_max = 149597870691 + 100000 #meters
-z_min = 0 #meters
-z_max = 1600000*1000 #meters
+z_length = 1600000*1000 #meters
 
-input_test = stochastic_initial_conditions(m,T,y_min,y_max,z_min,z_max)
+input_test = stochastic_initial_conditions(m,T,y_min,y_max,z_length)
 print(input_test)

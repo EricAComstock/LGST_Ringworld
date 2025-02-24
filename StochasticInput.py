@@ -24,8 +24,8 @@ def stochastic_initial_conditions(m,T,y_min,y_max,z_length):
 
 T = 289  # Temperature in Kelvin
 m = 5.31e-26  # Mass of oxygem molecule (kg)
-y_min = 149597870691 #meters
-y_max = 149597870691 + 100000 #meters
+y_min = 149597870691 + 218*1000 #meters, top of atmosphere based on exponential scale height
+y_max = 149597870691 + 218*1000 + 10*1000 #meters, top of atmoshere plus arbitrary 10 km spawning cieling
 z_length = 1600000*1000 #meters
 
 input_test = stochastic_initial_conditions(m,T,y_min,y_max,z_length)

@@ -20,13 +20,15 @@ def stochastic_initial_conditions(m,T,y_min,y_max,z_length):
 
     return [x,y,z,vx,vy,vz]
 
-#Below this is to test functionality
-
+# Constants
 T = 289  # Temperature in Kelvin
-m = 5.31e-26  # Mass of oxygem molecule (kg)
+m = 5.31e-26  # Mass of oxygen molecule (kg)
 y_min = 149597870691 + 218*1000 #meters, top of atmosphere based on exponential scale height
 y_max = 149597870691 + 218*1000 + 10*1000 #meters, top of atmoshere plus arbitrary 10 km spawning cieling
 z_length = 1600000*1000 #meters
+y_floor = 149597870691
 
-input_test = stochastic_initial_conditions(m,T,y_min,y_max,z_length)
-print(input_test)
+# Testing code - only runs when this file is executed directly
+if __name__ == "__main__":
+    input_test = stochastic_initial_conditions(m,T,y_min,y_max,z_length)
+    print(input_test)

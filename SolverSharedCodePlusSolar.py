@@ -110,6 +110,7 @@ def compute_motion(initial_position, initial_velocity, radius, gravity, t_max, d
     Returns:
     final_position: Final position vector in rotating frame
     final_velocity: Final velocity vector in rotating frame
+    solution: Full solution with position and velocity at all timesteps
     """
     initial_position = np.array(initial_position, dtype=float)
     initial_velocity = np.array(initial_velocity, dtype=float)
@@ -119,7 +120,6 @@ def compute_motion(initial_position, initial_velocity, radius, gravity, t_max, d
 
     # Create initial state vector [x, y, z, vx, vy, vz]
     initial_state = np.concatenate((initial_position, initial_velocity))
-
 
     # Solve the equations of motion using RK45
     t_span = (0, t_max)
@@ -138,10 +138,7 @@ def compute_motion(initial_position, initial_velocity, radius, gravity, t_max, d
 
     # Extract the final state
     final_position = solution.y[:3, -1]
-
     final_velocity = solution.y[3:, -1]
-    import matplotlib.pyplot as plt
-    plt.plot(solution.t, np.sqrt(solution.y[0]**2+solution.y[1]**2))
-    plt.savefig('test.png')
 
-    return final_position.tolist(), final_velocity.tolist()
+    # Return the final position, final velocity, and the full solution
+    return final_position.tolist(), final_velocity.tolist(), solution

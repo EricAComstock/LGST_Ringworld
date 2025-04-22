@@ -10,7 +10,7 @@ import pandas as pd
 
 ###CHANGE FILE###
 
-file = 'particle_data_20250304_123751.xlsx'
+file = 'particle_data_20250311_133411.xlsx'
 
 ###CONSTANTS####
 
@@ -40,7 +40,8 @@ h_s = K_b*T_0/(m*g)
 
 alt = h_s*math.log(h_s/lam)
 
-n = (P_0/(K_b*T_0))*math.e**(-alt/h_s)
+#n = (P_0/(K_b*T_0))*math.e**(-alt/h_s)
+n = 429.7/1e12/m
 
 phi_m = n*m*340*f_escape
 

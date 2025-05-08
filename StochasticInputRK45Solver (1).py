@@ -37,7 +37,7 @@ def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100, save_
     num_particles (int): Number of particles to simulate
     save_results (bool): Whether to save results to Excel
     show_plots (bool): Whether to display trajectory plots
-
+    
     Returns:
     pd.DataFrame: DataFrame containing all particle simulation results
     """
@@ -131,14 +131,15 @@ def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100, save_
         plt.legend()
 
         # Show plots if requested
-        plt.show()
+        if show_plots:
+            plt.show()
 
     # Save results if requested
     if save_results and not df.empty:
         # Create timestamp for unique filename
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename  = f'particle_data_{timestamp}.xlsx'
-
+        
         try:
             # Save to Excel
             df.to_excel(filename, sheet_name='Particles', index=False)
@@ -173,10 +174,10 @@ if __name__ == "__main__":
 
     # Run simulation
     results = main(
-        radius=y_min,  # Use y_min as radius
-        gravity=G,     # Use Earth gravity
-        t_max=t_max,
-        dt=dt,
+        radius    = y_min,  # Use y_min as radius
+        gravity   = G,     # Use Earth gravity
+        t_max     = t_max,
+        dt        = dt,
         is_rotating=False,  # Solar gravity is disabled
         num_particles=num_particles
     )

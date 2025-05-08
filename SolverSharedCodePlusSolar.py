@@ -9,7 +9,6 @@ Author: Edwin Ontivoros
 Date: April 29, 2025
 """
 
-
 import numpy as np
 from scipy.integrate import solve_ivp
 
@@ -18,27 +17,38 @@ G = 9.81  # Gravity on Earth in m/s²
 
 def calculate_omega(radius, gravity):
     """
-    Calculate angular velocity for a rotating reference frame.
+    Calculate angular velocity for a rotating reference frame where
+    centripetal acceleration equals desired gravity.
+
+    For a ringworld, ω² = g/r
+
+    The sign is negative, indicating clockwise rotation
+    when viewed from the positive z-axis.
 
     Parameters:
-    radius (float): Radius of rotation (m)
-    gravity (float): Desired artificial gravity (m/s²)
+    radius: Radius of rotation (m)
+    gravity: Desired artificial gravity (m/s²)
 
     Returns:
-    float: Angular velocity (rad/s)
+    omega: Angular velocity (rad/s)
     """
     return -np.sqrt(gravity / radius)  # Negative sign for clockwise rotation
 
+
 def calculate_solar_gravity(r, solar_mu):
     """
-    Compute gravitational acceleration due to a central body.
+    Compute the gravitational acceleration due to a central body.
+
+    F = -G·M·m/r² in direction of r
+    a = -G·M/r² · r̂ = -μ · r̂/r²
 
     Parameters:
-    r (np.array): Position vector [x, y, z]
-    solar_mu (float): Gravitational parameter (G*M)
+    r: Position vector [x, y, z]
+    solar_mu: Gravitational parameter μ = G·M
 
     Returns:
-    np.array: Gravitational acceleration vector [ax, ay, az]
+    Gravitational acceleration vector [ax, ay, az]
+
     """
     r_mag = np.linalg.norm(r)
     if r_mag == 0:
@@ -49,24 +59,33 @@ def equations_of_motion_rotating(t, state, omega, solar_mu=None):
     """
     Equations of motion for a particle in a rotating frame.
 
+
+    In a rotating frame, a free particle experiences Coriolis and centrifugal forces
+    even when there are no external forces in the inertial frame.
+
+    For negative omega (clockwise rotation):
+    - Coriolis acceleration: -2(ω × v)
+    - Centrifugal acceleration: -ω × (ω × r)
+
     Parameters:
-    t (float): Time (s)
-    state (list or np.array): State vector [x, y, z, vx, vy, vz]
-    omega (float): Angular velocity (rad/s)
-    solar_mu (float, optional): Solar gravity parameter
+    t: Time (s)
+    state: State vector [x, y, z, vx, vy, vz]
+    omega: Angular velocity magnitude (rad/s)
+    solar_mu: Solar gravity parameter (None to disable)
 
     Returns:
-    np.array: Derivatives of state vector [dx/dt, dy/dt, dz/dt, dvx/dt, dvy/dt, dvz/dt]
+    Derivatives of state vector [dx/dt, dy/dt, dz/dt, dvx/dt, dvy/dt, dvz/dt]
     """
-    r, v            = state[:3], state[3:]
+    r, v = state[:3], state[3:]
 
     # Position derivatives are simply the velocities
-    dr_dt           = v
+    dr_dt = v
 
-    omega_vector    = np.array([0, 0, omega])
+    # For a particle in a rotating frame, we need to include the Coriolis and centrifugal forces
+    omega_vector = np.array([0, 0, omega])  # omega is now negative
 
     # Coriolis acceleration: -2(ω × v)
-    coriolis_acc    = -2 * np.cross(omega_vector, v)
+    coriolis_acc = -2 * np.cross(omega_vector, v)
 
     # Centrifugal acceleration: -ω × (ω × r)
     centrifugal_acc = -np.cross(omega_vector, np.cross(omega_vector, r))
@@ -76,23 +95,27 @@ def equations_of_motion_rotating(t, state, omega, solar_mu=None):
 
     # Add solar gravity if enabled
     if solar_mu is not None:
-        dv_dt += calculate_solar_gravity(r, solar_mu)
+        solar_acceleration = calculate_solar_gravity(r, solar_mu)
+        dv_dt += solar_acceleration
 
     # Return derivatives [dx/dt, dy/dt, dz/dt, dvx/dt, dvy/dt, dvz/dt]
     return np.concatenate((dr_dt, dv_dt))
 
 def compute_motion(initial_position, initial_velocity, radius, gravity, t_max, dt, solar_mu=None):
     """
-    Computes particle motion in the rotating frame using RK45 integration.
+    Computes particle motion in the rotating frame using RK45 and returns the final state.
+
+    This function stays entirely within the rotating frame and numerically solves
+    the equations of motion for a particle using the RK45 method.
 
     Parameters:
-    initial_position (list): Initial position vector [x, y, z]
-    initial_velocity (list): Initial velocity vector [vx, vy, vz]
-    radius (float): Radius for calculating omega (m)
-    gravity (float): Gravity for calculating omega (m/s²)
-    t_max (float): Maximum simulation time (s)
-    dt (float): Time step (s)
-    solar_mu (float, optional): Solar gravity parameter
+    initial_position: Initial position vector in rotating frame
+    initial_velocity: Initial velocity vector in rotating frame
+    radius: Radius for calculating omega
+    gravity: Gravity for calculating omega
+    t_max: Maximum simulation time (s)
+    dt: Time step (s)
+    solar_mu: Solar gravity parameter (None to disable)
 
     Returns:
     tuple: (final_position, final_velocity, solution)
@@ -113,6 +136,7 @@ def compute_motion(initial_position, initial_velocity, radius, gravity, t_max, d
     t_eval  = np.arange(0, t_max + dt / 2, dt)
 
     # Solve the equations of motion using RK45
+
     solution = solve_ivp(
         equations_of_motion_rotating,
         t_span,
@@ -130,3 +154,4 @@ def compute_motion(initial_position, initial_velocity, radius, gravity, t_max, d
 
     # Return the final position, final velocity, and the full solution
     return final_position.tolist(), final_velocity.tolist(), solution
+

@@ -1,4 +1,4 @@
-"""
+""
 tester-mullis-NEW.py
 
 Tests analytical vs numerical integration in inertial and rotating frames
@@ -161,4 +161,5 @@ print(f"Analytical position in rotating frame: ({r_analytical_rotating[0]:.3f}, 
 print(f"Numerical position in rotating frame: ({final_rot_position[0]:.3f}, {final_rot_position[1]:.3f}, {final_rot_position[2]:.3f})")
 
 rotating_error = np.linalg.norm(r_analytical_rotating - final_rot_position)
+
 print(f"Rotating frame error: {rotating_error:.6f} meters")

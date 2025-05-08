@@ -1,9 +1,19 @@
+"""
+SolverSharedCodePlusSolar.py
+
+Provides physics utility functions for rotating reference frames, including
+angular velocity computation, solar gravity, and RK45-based motion integration.
+
+Version: 1.0
+Author: Edwin Ontivoros
+Date: April 29, 2025
+"""
+
 import numpy as np
 from scipy.integrate import solve_ivp
 
 # Constants
 G = 9.81  # Gravity on Earth in m/s²
-
 
 def calculate_omega(radius, gravity):
     """
@@ -38,16 +48,17 @@ def calculate_solar_gravity(r, solar_mu):
 
     Returns:
     Gravitational acceleration vector [ax, ay, az]
+
     """
     r_mag = np.linalg.norm(r)
     if r_mag == 0:
         return np.zeros(3)  # Avoid division by zero
     return -solar_mu * r / (r_mag ** 3)
 
-
 def equations_of_motion_rotating(t, state, omega, solar_mu=None):
     """
     Equations of motion for a particle in a rotating frame.
+
 
     In a rotating frame, a free particle experiences Coriolis and centrifugal forces
     even when there are no external forces in the inertial frame.
@@ -90,7 +101,6 @@ def equations_of_motion_rotating(t, state, omega, solar_mu=None):
     # Return derivatives [dx/dt, dy/dt, dz/dt, dvx/dt, dvy/dt, dvz/dt]
     return np.concatenate((dr_dt, dv_dt))
 
-
 def compute_motion(initial_position, initial_velocity, radius, gravity, t_max, dt, solar_mu=None):
     """
     Computes particle motion in the rotating frame using RK45 and returns the final state.
@@ -108,22 +118,24 @@ def compute_motion(initial_position, initial_velocity, radius, gravity, t_max, d
     solar_mu: Solar gravity parameter (None to disable)
 
     Returns:
-    final_position: Final position vector in rotating frame
-    final_velocity: Final velocity vector in rotating frame
-    solution: Full solution with position and velocity at all timesteps
+    tuple: (final_position, final_velocity, solution)
+        - final_position (list): Final position vector [x, y, z]
+        - final_velocity (list): Final velocity vector [vx, vy, vz]
+        - solution (OdeResult): Full integration result
     """
     initial_position = np.array(initial_position, dtype=float)
     initial_velocity = np.array(initial_velocity, dtype=float)
 
     # Calculate angular velocity from radius and gravity
-    omega = calculate_omega(radius, gravity)
+    omega            = calculate_omega(radius, gravity)
 
     # Create initial state vector [x, y, z, vx, vy, vz]
-    initial_state = np.concatenate((initial_position, initial_velocity))
+    initial_state    = np.concatenate((initial_position, initial_velocity))
+
+    t_span  = (0, t_max)
+    t_eval  = np.arange(0, t_max + dt / 2, dt)
 
     # Solve the equations of motion using RK45
-    t_span = (0, t_max)
-    t_eval = np.arange(0, t_max + dt / 2, dt)
 
     solution = solve_ivp(
         equations_of_motion_rotating,
@@ -142,3 +154,4 @@ def compute_motion(initial_position, initial_velocity, radius, gravity, t_max, d
 
     # Return the final position, final velocity, and the full solution
     return final_position.tolist(), final_velocity.tolist(), solution
+

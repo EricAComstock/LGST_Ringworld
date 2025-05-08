@@ -1,3 +1,14 @@
+"""
+StochasticInputRK45Solver.py
+
+Runs a particle trajectory simulation using randomly generated initial
+conditions, propagates them using RK45 integration, and classifies outcomes.
+
+Version: 1.0
+Author: Edwin Ontivoros
+Date: April 29, 2025
+"""
+
 import numpy as np
 import pandas as pd
 import os
@@ -18,16 +29,18 @@ def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100, save_
     Main function to run the particle simulation.
 
     Parameters:
-    radius (float): Radius for calculating omega
-    gravity (float): Gravity for calculating omega
+    radius (float): Radius for calculating omega (m)
+    gravity (float): Gravity for calculating omega (m/s²)
     t_max (float): Maximum simulation time (s)
     dt (float): Time step (s)
     is_rotating (bool): Whether the reference frame is rotating
     num_particles (int): Number of particles to simulate
     save_results (bool): Whether to save results to Excel
     show_plots (bool): Whether to display trajectory plots
+    
+    Returns:
+    pd.DataFrame: DataFrame containing all particle simulation results
     """
-    # Create empty list to store particle data
     all_data = []
 
     print(f"Processing {num_particles} particles...")
@@ -47,8 +60,9 @@ def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100, save_
     # Process each particle
     for i in range(num_particles):
         # Get initial conditions for this particle
-        initial_state = stochastic_initial_conditions(m, T, y_min, y_max, z_length)
-        initial_position, initial_velocity = initial_state[:3], initial_state[3:]
+        initial_state    = stochastic_initial_conditions(m, T, y_min, y_max, z_length)
+        initial_position = initial_state[:3]
+        initial_velocity = initial_state[3:]
 
         # Compute trajectory
         try:
@@ -58,7 +72,7 @@ def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100, save_
             )
 
             # Extract trajectory data from solution
-            trajectory = solution.y[:3, :].T  # Transpose for (n_timesteps, 3) shape
+            trajectory  = solution.y[:3, :].T  # Transpose for (n_timesteps, 3) shape
 
             # Convert trajectory to DataFrame for classification
             solution_df = pd.DataFrame(trajectory, columns=[0, 1, 2])
@@ -69,20 +83,20 @@ def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100, save_
             # Create data row for this particle
             particle_data = {
                 'Particle #': i + 1,
-                'Initial x': initial_position[0],
-                'Initial y': initial_position[1],
-                'Initial z': initial_position[2],
+                'Initial x' : initial_position[0],
+                'Initial y' : initial_position[1],
+                'Initial z' : initial_position[2],
                 'Initial vx': initial_velocity[0],
                 'Initial vy': initial_velocity[1],
                 'Initial vz': initial_velocity[2],
-                'Final x': final_position[0],
-                'Final y': final_position[1],
-                'Final z': final_position[2],
-                'Final vx': final_velocity[0],
-                'Final vy': final_velocity[1],
-                'Final vz': final_velocity[2],
+                'Final x'   : final_position[0],
+                'Final y'   : final_position[1],
+                'Final z'   : final_position[2],
+                'Final vx'  : final_velocity[0],
+                'Final vy'  : final_velocity[1],
+                'Final vz'  : final_velocity[2],
                 'Beta crossings': beta_crossings,
-                'Result': result
+                'Result'        : result
             }
 
             all_data.append(particle_data)
@@ -124,15 +138,15 @@ def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100, save_
     if save_results and not df.empty:
         # Create timestamp for unique filename
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f'particle_data_{timestamp}.xlsx'
-
+        filename  = f'particle_data_{timestamp}.xlsx'
+        
         try:
             # Save to Excel
             df.to_excel(filename, sheet_name='Particles', index=False)
             print(f"\nResults saved to: {filename}")
 
             # Additional summary statistics
-            escaped_count = df[df['Result'] == 'escaped'].shape[0]
+            escaped_count    = df[df['Result'] == 'escaped'].shape[0]
             recaptured_count = df[df['Result'] == 'recaptured'].shape[0]
             resimulate_count = df[df['Result'] == 'resimulate'].shape[0]
 
@@ -152,19 +166,18 @@ def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100, save_
 
     return df
 
-
 if __name__ == "__main__":
     # Simulation parameters
-    t_max = 100  # Total simulation time (s)
-    dt = 0.1  # Time step (s)
+    t_max         = 100  # Total simulation time (s)
+    dt            = 0.1  # Time step (s)
     num_particles = 100  # Number of particles to simulate
 
     # Run simulation
     results = main(
-        radius=y_min,  # Use y_min as radius
-        gravity=G,  # Use Earth gravity
-        t_max=t_max,
-        dt=dt,
+        radius    = y_min,  # Use y_min as radius
+        gravity   = G,     # Use Earth gravity
+        t_max     = t_max,
+        dt        = dt,
         is_rotating=False,  # Solar gravity is disabled
         num_particles=num_particles
     )

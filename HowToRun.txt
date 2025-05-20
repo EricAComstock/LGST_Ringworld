@@ -68,6 +68,16 @@ TrajectoryClassification.py
    * Boundary crossing quantification
 
 
+LeakRate.py
+-------------------------------------------------------------------------------
+   
+   Analyzes simulation results to determine atmospheric loss:
+   * Processes the particle classification data (escaped/recaptured)
+   * Calculates molecular escape fraction
+   * Computes mass flux rate using kinetic theory
+   * Estimates total atmospheric lifetime in years
+
+
 tester-mullis-NEW.py
 -------------------------------------------------------------------------------
    
@@ -83,24 +93,48 @@ Execution Instructions
 Primary Simulation
 -------------------------------------------------------------------------------
 
-   Run command:
+   1. Run command:
       python StochasticInputRK45Solver.py
    
-   Outputs:
-      1. Console output:
-         - Progress updates as particles are processed
-         - Summary statistics (escape/recapture percentages)
-         - File save location confirmation
-      
-      2. Excel file:
-         - Named with timestamp (e.g., particle_data_20250314_123456.xlsx)
-         - Contains initial/final positions and velocities
-         - Records boundary crossings and classification results
-      
-      3. Visualization plots:
-         - X-Y Plot: Horizontal particle trajectories
-         - Z-Y Plot: Vertical trajectories with boundary lines
-         - Color-coded paths for multiple particle tracking
+   2. Expected outcomes:
+      - Progress updates displayed in console (particle processing status)
+      - Summary statistics shown after completion (escape/recapture percentages)
+      - Trajectory plots generated (if show_plots=True)
+      - Results file created in current directory with timestamp (particle_data_YYYYMMDD_HHMMSS.xlsx)
+   
+   3. Output files:
+      - Excel spreadsheet containing:
+        * Initial positions and velocities
+        * Final positions and velocities
+        * Boundary crossing counts
+        * Trajectory classification results (escaped, recaptured, resimulate)
+   
+   4. Visualization:
+      - X-Y Plot: Shows horizontal particle trajectories with atmosphere boundary
+      - Z-Y Plot: Shows vertical trajectories with all boundary lines
+      - Color-coded paths to distinguish multiple particles
+   
+   5. Parameter adjustment:
+      - Edit configuration parameters in the __main__ block:
+        * t_max: Simulation duration
+        * dt: Time step size
+        * num_particles: Number of particles to simulate
+
+
+Atmospheric Leak Rate Analysis
+-------------------------------------------------------------------------------
+
+   1. After running the primary simulation, open LeakRate.py
+   
+   2. Update the file variable with your simulation results filename:
+      file = 'particle_data_20250311_133411.xlsx'  # Change to your file
+   
+   3. Run command:
+      python LeakRate.py
+   
+   4. Output results:
+      - Molecular flux rate (kg/m²/s)
+      - Atmospheric lifetime (years)
 
 
 Verification Tool
@@ -174,6 +208,18 @@ SolverSharedCodePlusSolar.py
    omega                : Angular velocity vector
 
 
+LeakRate.py
+-------------------------------------------------------------------------------
+
+   P_0                  : Atmospheric pressure at sea level (Pa)
+   K_b                  : Boltzmann constant (J/K)
+   T_0                  : Standard temperature (K)
+   m                    : Mass of diatomic molecule (kg)
+   g                    : Gravitational acceleration (m/s²)
+   n_0                  : Standard atmospheric molecular density (1/m³)
+   d                    : Molecular diameter (m)
+
+
 Physical Models
 ===============================================================================
 
@@ -184,6 +230,15 @@ Physical Models
    3. Maxwell-Boltzmann Distribution: f(v) ∝ v²exp(-mv²/2kT)
    
    4. Boundary Dynamics: Classification based on geometric thresholds
+   
+   5. Atmospheric Leak Rate Model:
+      * Escape Fraction: f_escape = N_escaped / N_recaptured
+      * Mean Free Path: λ = (σ·n₀)⁻¹, where σ = π·d²/4
+      * Scale Height: h_s = k·T₀/(m·g)
+      * Exobase Altitude: alt = h_s·ln(h_s/λ)
+      * Molecular Density: n = n₀·e^(-alt/h_s)
+      * Mass Flux: φ_m = n·m·v_thermal·f_escape
+      * Atmospheric Lifetime: t_life = (P₀/g)/φ_m (converted to years)
 
 
 Parameter Modification
@@ -197,3 +252,20 @@ Parameter Modification
    2. For quick parameter adjustments, modify values in the
       if __name__ == "__main__" block at the bottom of 
       StochasticInputRK45Solver.py
+
+
+Individual Module Execution
+===============================================================================
+
+   Each module can be run individually when executed directly for testing
+   or specific analyses:
+   
+   1. Each file contains a test block at the end that executes only when
+      the file is run directly via:
+      python [filename].py
+      
+   2. Before running modules individually, be sure to update any file paths
+      or input filenames within the code:
+      - In LeakRate.py: Update the 'file' variable with your result filename
+      - In TrajectoryClassification.py: Update the test file path if using the test feature
+      - In StochasticInput.py: No changes needed, runs a simple generation test

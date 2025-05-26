@@ -14,7 +14,7 @@ import pandas as pd
 
 ### CHANGE FILE ###
 
-file = 'particle_data_20250311_133411.xlsx'
+file = 'particle_data_20250523_181833.xlsx'
 
 ### CONSTANTS ###
 
@@ -28,27 +28,37 @@ d    = 3.59e-10          # Molecular diameter (m)
 
 ### CALCULATE F_ESCAPE ###
 
-df = pd.read_excel(file, sheet_name='Particles')
-target_words = ["resimulate", "recaptured", "escaped"]
-counts = [int((df['Result'].astype(str) == word).sum()) for word in target_words]
+
 
 ### CALCULATE LEAK RATE ###
 
-f_escape = counts[2] / counts[1]
+def find_lifetime (file):
+    result = ""
+    df = pd.read_excel(file, sheet_name='Particles')
+    target_words = ["resimulate", "recaptured", "escaped"]
+    counts = [int((df['Result'].astype(str) == word).sum()) for word in target_words]
 
-sigma = 0.25 * math.pi * d ** 2
+    f_escape = counts[2] / counts[1]
 
-lam = (sigma * n_0) ** -1
+    sigma = 0.25 * math.pi * d ** 2
 
-h_s = K_b * T_0 / (m * g)
+    lam = (sigma * n_0) ** -1
 
-alt = h_s * math.log(h_s / lam)
+    h_s = K_b * T_0 / (m * g)
 
-# n = (P_0 / (K_b * T_0)) * math.e ** (-alt / h_s)
-n = 429.7 / 1e12 / m
+    alt = h_s * math.log(h_s / lam)
 
-phi_m = n * m * 340 * f_escape
+    # n = (P_0 / (K_b * T_0)) * math.e ** (-alt / h_s)
+    n = 429.7 / 1e12 / m
 
-print(phi_m)
+    phi_m = n * m * 340 * f_escape
 
-print('Lifetime', (P_0 / g) / phi_m / 86400 / 365.2425, 'yrs')
+
+    if(phi_m == 0):
+        result = 'No particles escaped; lifetime indefinite'
+    else:
+        result = ('Lifetime: '+ str((P_0 / g) / phi_m / 86400 / 365.2425)+ ' yrs')
+
+
+    return result
+

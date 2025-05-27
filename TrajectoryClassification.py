@@ -14,7 +14,7 @@ import numpy as np
 import pandas as pd
 
 # Boundary conditions - change these values to modify simulation boundaries
-z_length = 1600000 * 1000  # meters
+z_length = 10000 * 1000  # meters
 beta     = z_length / 2
 y_floor  = 149597870691
 alpha    = y_floor - (218 * 1000)

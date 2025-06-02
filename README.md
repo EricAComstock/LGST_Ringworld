@@ -25,10 +25,10 @@ Overview
 Coordinate System
 ===============================================================================
 
-   Origin      : Heliocentric (sun-centered)
-   X-Y plane   : Equatorial plane of the ringworld structure
-   Z-axis      : Orthogonal to the ringworld plane
-   Reference   : Non-inertial rotating frame with angular velocity ω about z-axis
+   * Origin      : Heliocentric (sun-centered)
+   * X-Y plane   : Equatorial plane of the ringworld structure
+   * Z-axis      : Orthogonal to the ringworld plane
+   * Reference   : Non-inertial rotating frame with angular velocity ω about z-axis
 
 
 Component Modules

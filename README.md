@@ -167,61 +167,61 @@ Configuration Parameters
 StochasticInputRK45Solver.py
 -------------------------------------------------------------------------------
 
-   t_max                : Simulation time
-   dt                   : Integration time step
-   num_particles        : Desired number of particles
-   is_rotating          : Reference frame selection
-   radius               : Ringworld radius
-   gravity              : Gravitational acceleration parameter
-   save_results         : Data persistence control
-   show_plots           : Visualization toggle
+   * t_max                : Simulation time
+   * dt                   : Integration time step
+   * num_particles        : Desired number of particles
+   * is_rotating          : Reference frame selection
+   * radius               : Ringworld radius
+   * gravity              : Gravitational acceleration parameter
+   * save_results         : Data persistence control
+   * show_plots           : Visualization toggle
 
 
 TrajectoryClassification.py
 -------------------------------------------------------------------------------
 
-   z_length             : Total length of the ringworld
-   beta                 : Lateral boundary threshold (half of z_length)
-   y_floor              : Lower vertical boundary (1 AU)
-   alpha                : Atmospheric threshold
-   y_min                : Minimum particle spawn height
-   y_max                : Maximum particle spawn height
+   * z_length             : Total length of the ringworld
+   * beta                 : Lateral boundary threshold (half of z_length)
+   * y_floor              : Lower vertical boundary (1 AU)
+   * alpha                : Atmospheric threshold
+   * y_min                : Minimum particle spawn height
+   * y_max                : Maximum particle spawn height
    
-   Classification thresholds    : Criteria for determining particle fate
-   Boundary interaction rules   : How particles interact with boundaries
-   Beta crossing detection      : Logic for counting boundary crossings
+   * Classification thresholds    : Criteria for determining particle fate
+   * Boundary interaction rules   : How particles interact with boundaries
+   * Beta crossing detection      : Logic for counting boundary crossings
 
 
 StochasticInput.py
 -------------------------------------------------------------------------------
 
-   T                    : Temperature
-   m                    : Particle mass
-   k_B                  : Boltzmann constant
-   scale                : Velocity scale parameter
-   unit_vector          : Direction normalization
+   * T                    : Temperature
+   * m                    : Particle mass
+   * k_B                  : Boltzmann constant
+   * scale                : Velocity scale parameter
+   * unit_vector          : Direction normalization
 
 
 SolverSharedCodePlusSolar.py
 -------------------------------------------------------------------------------
 
-   G                    : Gravitational constant
-   solar_mu             : Heliocentric gravitational parameter
-   rtol, atol           : Integration error tolerance
-   method               : Integration scheme selection
-   omega                : Angular velocity vector
+   * G                    : Gravitational constant
+   * solar_mu             : Heliocentric gravitational parameter
+   * rtol, atol           : Integration error tolerance
+   * method               : Integration scheme selection
+   * omega                : Angular velocity vector
 
 
 LeakRate.py
 -------------------------------------------------------------------------------
 
-   P_0                  : Atmospheric pressure at sea level (Pa)
-   K_b                  : Boltzmann constant (J/K)
-   T_0                  : Standard temperature (K)
-   m                    : Mass of diatomic molecule (kg)
-   g                    : Gravitational acceleration (m/s²)
-   n_0                  : Standard atmospheric molecular density (1/m³)
-   d                    : Molecular diameter (m)
+   * P_0                  : Atmospheric pressure at sea level (Pa)
+   * K_b                  : Boltzmann constant (J/K)
+   * T_0                  : Standard temperature (K)
+   * m                    : Mass of diatomic molecule (kg)
+   * g                    : Gravitational acceleration (m/s²)
+   * n_0                  : Standard atmospheric molecular density (1/m³)
+   * d                    : Molecular diameter (m)
 
 
 Physical Models
@@ -266,7 +266,7 @@ Individual Module Execution
    
    1. Each file contains a test block at the end that executes only when
       the file is run directly via:
-      python [filename].py
+      - python [filename].py
       
    2. Before running modules individually, be sure to update any file paths
       or input filenames within the code:

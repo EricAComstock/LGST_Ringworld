@@ -193,7 +193,6 @@ if __name__ == "__main__":
     y_max           = alpha                     # (m)
     P_0             = 101325                    # Atmospheric pressure at sea level (Pa)
     K_b             = 1.380649e-23              # Boltzmann constant (J/K)
-    T_0             = 300                       # Standard temperature (K)
     m               = 2.6566962e-26 * 2         # Mass of diatomic molecule (kg)
     n_0             = 2.687e25                  # Standard atmospheric molecular density (1/m^3)
     d               = 3.59e-10                  # Molecular diameter (m)
@@ -201,7 +200,7 @@ if __name__ == "__main__":
     SSCPSVarInput(g)
     SIVarInput(T,m,y_min,y_max,z_length,y_floor)
     TCVarInput(z_length,beta,y_floor,alpha,y_min,y_max)
-    LRVarInput(P_0,K_b,T_0,m,g,n_0,d)
+    LRVarInput(P_0,K_b,T,m,g,n_0,d)
     # Run simulation
     results = main(
         radius    = y_min,  # Use y_min as radius

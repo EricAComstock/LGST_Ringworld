@@ -12,6 +12,7 @@ Date: April 29, 2025 .
 import math
 import pandas as pd
 
+
 ### CHANGE FILE ###
 
 file = 'particle_data_20250523_181833.xlsx'
@@ -31,6 +32,15 @@ d    = 3.59e-10          # Molecular diameter (m)
 
 
 ### CALCULATE LEAK RATE ###
+def LRVarInput(P_0_i,K_b_i,T_0_i,m_i,g_i,n_0_i,d_i):
+    global P_0,K_b,T_0,m,g,n_0,d
+    P_0 = P_0_i
+    K_b = K_b_i
+    T_0 = T_0_i
+    m = m_i
+    g = g_i
+    n_0 = n_0_i
+    d = d_i
 
 def find_lifetime (file):
     result = ""
@@ -62,3 +72,5 @@ def find_lifetime (file):
 
     return result
 
+
+    

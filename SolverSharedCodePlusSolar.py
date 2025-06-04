@@ -13,7 +13,11 @@ import numpy as np
 from scipy.integrate import solve_ivp
 
 # Constants
-G = 9.81  # Gravity on Earth in m/s²
+g = 9.81  # Gravity on Earth in m/s²
+
+def SSCPSVarInput(g_i):
+    global g
+    g = g_i
 
 def calculate_omega(radius, gravity):
     """

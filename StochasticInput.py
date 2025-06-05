@@ -12,7 +12,25 @@ Date: April 29, 2025
 import numpy as np
 from scipy.stats import maxwell
 import random
-from TrajectoryClassification import y_floor, y_max, y_min, z_length
+
+# Constants
+T        = 289                       # Temperature (K)
+m        = 5.31e-26                  # Mass of oxygen molecule (kg)
+y_min    = 149597870691 + 218 * 1000 # Minimum y (meters)
+y_max    = 149597870691 + 218 * 1000 + 10 * 1000  # Maximum y (meters)
+z_length = 10000 * 1000            # Total z-length (meters)
+y_floor  = 149597870691              # Floor value for y (meters)
+
+def SIVarInput(T_i,m_i,y_min_i,y_max_i,z_length_i,y_floor_i):
+    global T,m,y_min,y_max,z_length,y_floor
+    T = T_i
+    m = m_i
+    y_min = y_min_i
+    y_max = y_max_i
+    z_length = z_length_i
+    y_floor = y_floor_i
+
+    
 
 def stochastic_initial_conditions(m, T, y_min, y_max, z_length):
     """
@@ -45,13 +63,7 @@ def stochastic_initial_conditions(m, T, y_min, y_max, z_length):
 
     return [x, y, z, vx, vy, vz]
 
-# Constants
-T        = 289                       # Temperature (K)
-m        = 5.31e-26                  # Mass of oxygen molecule (kg)
-#y_min    = 149597870691 + 218 * 1000 # Minimum y (meters)
-#y_max    = 149597870691 + 218 * 1000 + 10 * 1000  # Maximum y (meters)
-#z_length = 10000 * 1000            # Total z-length (meters)
-#y_floor  = 149597870691              # Floor value for y (meters)
+
 
 # Testing code - only runs when this file is executed directly
 if __name__ == "__main__":

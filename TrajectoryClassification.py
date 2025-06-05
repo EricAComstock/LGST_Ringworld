@@ -24,6 +24,15 @@ y_max    = alpha  # meters
 # A particle escapes if it travels below alpha while outside of beta or ends the simulation outside of beta
 # A particle is recaptured if it ends the simulation below alpha and within beta or if it collides with beta below alpha
 # A particle is resimulated if it ends the simulation above alpha but within beta (it may leave beta and then reenter)
+def TCVarInput(z_length_i,beta_i,y_floor_i,alpha_i,y_min_i,y_max_i):
+    global z_length,beta,y_floor,alpha,y_min,y_max
+    z_length = z_length_i
+    beta = beta_i
+    y_floor = y_floor_i
+    alpha = alpha_i
+    y_min = y_min_i
+    y_max = y_max_i
+
 
 def classify_trajectory(alpha, beta, y_floor, trajectories):
     """

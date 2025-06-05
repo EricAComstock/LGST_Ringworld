@@ -12,6 +12,7 @@ Date: April 29, 2025 .
 import math
 import pandas as pd
 
+
 ### CHANGE FILE ###
 
 file = 'particle_data_20250523_181833.xlsx'
@@ -20,7 +21,7 @@ file = 'particle_data_20250523_181833.xlsx'
 
 P_0  = 101325            # Atmospheric pressure at sea level (Pa)
 K_b  = 1.380649e-23      # Boltzmann constant (J/K)
-T_0  = 300               # Standard temperature (K)
+T  = 289               # Standard temperature (K)
 m    = 2.6566962e-26 * 2 # Mass of diatomic molecule (kg)
 g    = 9.81              # Gravitational acceleration (m/s^2)
 n_0  = 2.687e25          # Standard atmospheric molecular density (1/m^3)
@@ -31,6 +32,15 @@ d    = 3.59e-10          # Molecular diameter (m)
 
 
 ### CALCULATE LEAK RATE ###
+def LRVarInput(P_0_i,K_b_i,T_i,m_i,g_i,n_0_i,d_i):
+    global P_0,K_b,T,m,g,n_0,d
+    P_0 = P_0_i
+    K_b = K_b_i
+    T = T_i
+    m = m_i
+    g = g_i
+    n_0 = n_0_i
+    d = d_i
 
 def find_lifetime (file):
     result = ""
@@ -44,7 +54,7 @@ def find_lifetime (file):
 
     lam = (sigma * n_0) ** -1
 
-    h_s = K_b * T_0 / (m * g)
+    h_s = K_b * T / (m * g)
 
     alt = h_s * math.log(h_s / lam)
 
@@ -62,3 +72,5 @@ def find_lifetime (file):
 
     return result
 
+
+    

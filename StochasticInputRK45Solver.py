@@ -16,13 +16,11 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 
 # Import from other modules
-from SolverSharedCodePlusSolar import compute_motion, G
-from StochasticInput import stochastic_initial_conditions, T, m
-from TrajectoryClassification import classify_trajectory
-from LeakRate import find_lifetime
+from SolverSharedCodePlusSolar import compute_motion, SSCPSVarInput
+from StochasticInput import stochastic_initial_conditions, SIVarInput
+from TrajectoryClassification import classify_trajectory, TCVarInput
+from LeakRate import find_lifetime, LRVarInput
 
-# Import boundary conditions from TrajectoryClassification
-from TrajectoryClassification import y_min, y_max, z_length, beta, alpha, y_floor
 
 
 def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100, save_results=True, show_plots=False, find_leak_rate = True):
@@ -178,16 +176,35 @@ def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100, save_
 
     return df
 
+
+
 if __name__ == "__main__":
     # Simulation parameters
-    t_max         = 100  # Total simulation time (s)
-    dt            = 0.1  # Time step (s)
-    num_particles = 1000  # Number of particles to simulate
+    t_max           = 100                       # Total simulation time (s)
+    dt              = 0.1                       # Time step (s)
+    num_particles   = 1000                      # Number of particles to simulate
+    g               = 9.81                      # Standard gravitational acceleration (m/s^2)
+    T               = 289                       # Temperature (K)
+    z_length        = 10000 * 1000              # Total z-length (m)
+    y_floor         = 149597870691              # Floor value for y (m)
+    beta            = z_length / 2              # (m)
+    alpha           = y_floor - (218 * 1000)    # (m)
+    y_min           = alpha - 10000             # (m)
+    y_max           = alpha                     # (m)
+    P_0             = 101325                    # Atmospheric pressure at sea level (Pa)
+    K_b             = 1.380649e-23              # Boltzmann constant (J/K)
+    m               = 2.6566962e-26 * 2         # Mass of diatomic molecule (kg)
+    n_0             = 2.687e25                  # Standard atmospheric molecular density (1/m^3)
+    d               = 3.59e-10                  # Molecular diameter (m)
 
+    SSCPSVarInput(g)
+    SIVarInput(T,m,y_min,y_max,z_length,y_floor)
+    TCVarInput(z_length,beta,y_floor,alpha,y_min,y_max)
+    LRVarInput(P_0,K_b,T,m,g,n_0,d)
     # Run simulation
     results = main(
         radius    = y_min,  # Use y_min as radius
-        gravity   = G,     # Use Earth gravity
+        gravity   = g,     # Use Earth gravity
         t_max     = t_max,
         dt        = dt,
         is_rotating=False,  # Solar gravity is disabled

@@ -1,9 +1,13 @@
 #### Heading ####
+# Ringworld_width_vs_escape_analysis.R
+#
 # This file is used to generate qualitative ringworld data regarding surface vs
 # edge atmospheric losses from particle numbers recaptured and escaped generated
 # using the main Python codes for the simulation. It outputs the ringworld size
 # expected to generate 100% losses and the loss rate associated with the face.
 #
+# V1.2.1, Eric Comstock, 09/06/2025
+# V1.2, Eric Comstock, 09/06/2025
 # V1.1, Eric Comstock, 02/06/2025
 # V1.0, Eric Comstock, 02/06/2025
 
@@ -11,15 +15,15 @@
 
 worldWidth             = c(1600000,100000,10000,1000)# Ringworld test widths
 recaptured             = c(1000000-4-1048-1058-5378-5411-5439-5469-5542-5572-5439-5743
-               ,9452,94414,93713)                    # Number of particles recaptured
-escaped                = c(4, 1, 78, 851)            # Number of particles escaped
+               ,94555,94414,93713)                   # Number of particles recaptured
+escaped                = c(4, 16, 78, 851)           # Number of particles escaped
 
 #### Process data ####
 
 escape_frac_list       = c()                         # Fraction of particles escaped
 escape_frac_std_list   = c()                         # Std. dev. of the above fraction
 
-fudge_factor = 1e-6# Should be zero in the final code - prevents infinity from showing up
+fudge_factor = 0# Should be zero in the final code - prevents infinity from showing up
 
 for (i in 1: length(worldWidth))                # Data processing
 {

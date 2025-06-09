@@ -5,7 +5,7 @@ Provides physics utility functions for rotating reference frames, including
 angular velocity computation, solar gravity, and RK45-based motion integration.
 
 1.0, Edwin Ontivoros, April 29, 2025
-1.1, James Stewart, June 2, 2025
+1.1, James Stewart, June 9, 2025
 """
 
 import numpy as np

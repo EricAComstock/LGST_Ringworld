@@ -161,11 +161,14 @@ def compute_gravity(i_position, i_velocity, omega, theta, mass, rw_position):
         # Add to acceleration vector for Ringword
         acceleration_ringworld += (g * mass[i] / (np.linalg.norm(r_position - rw_position) ** 3) * (r_position - rw_position) - g * mass[i] / (np.linalg.norm(r_position) ** 3) * r_position)
 
+    return acceleration_ringworld
+
+def save_fig(i_position, i_velocity, omega, theta, mass, rw_position):
     plt.figure()
+    acceleration_ringworld = compute_gravity(i_position, i_velocity, omega, theta, mass, rw_position)
     plt.plot(theta[0], np.linalg.norm(acceleration_ringworld))
     plt.savefig('fig.png')
-
-    return acceleration_ringworld
+    
 
 compute_gravity([[2e8, 0., 0.]], [[0., 0., 0.]], [1e-6], [0.], [1e13], [1e8, 1e8, 0.])
 def compute_motion(initial_position, initial_velocity, radius, gravity, t_max, dt, solar_mu=None):

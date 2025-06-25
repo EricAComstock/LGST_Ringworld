@@ -159,3 +159,13 @@ def compute_motion(initial_position, initial_velocity, radius, gravity, t_max, d
     # Return the final position, final velocity, and the full solution
     return final_position.tolist(), final_velocity.tolist(), solution
 
+def calculate_acceleration_from_mag_field(particle_charge: float, particle_velocity,particle_mass:float,magnetic_field):
+    #a =  magnetic Force/mass
+    #magnetic force = Q(V x B)
+    Q = particle_charge
+    V = particle_velocity
+    M = particle_mass
+    B = magnetic_field
+    force = Q * np.cross(V,B)
+    acceleration = force/M
+    return acceleration

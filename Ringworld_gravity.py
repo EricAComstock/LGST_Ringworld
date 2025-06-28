@@ -79,8 +79,8 @@ def V_Ring(x, y, z, R=149597870.7, a=1.609344 * 1e6):
         return V_r
 
     # Calculate potentials from near ringworld sections and far ringworld sections
-    result1 = ing.dblquad(V_Ring_point, -a / 2, a / 2, lambda x: -0.02 * R, lambda x: 0.02 * R)
-    result2 = ing.dblquad(V_Ring_point, -a / 2, a / 2, lambda x: 0.02 * R, lambda x: (2 * np.pi - 0.02) * R)
+    result1 = ingz.dblquad(V_Ring_point, -a / 2, a / 2, lambda x: -0.02 * R, lambda x: 0.02 * R)
+    result2 = ingz.dblquad(V_Ring_point, -a / 2, a / 2, lambda x: 0.02 * R, lambda x: (2 * np.pi - 0.02) * R)
 
     # Adds near and far potentials together
     return result1[0] + result2[0]

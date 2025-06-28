@@ -3,12 +3,13 @@ Ringworld gravity.py
 
 Generates plots of the gravity field induced by a ringworld and its magnitude and direction
 
+% V1.2, Edwin Ontiveros, 27/05/2025
 % V1.1, Eric Comstock, 15/05/2025
 % V1.0, Eric Comstock, 25/02/2025
 """
 
 import numpy as np
-import scipy.integrate as ing
+import scipy.integrate as ingz
 import matplotlib.pyplot as plt
 from matplotlib.colors import LinearSegmentedColormap
 

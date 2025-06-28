@@ -1,2 +1,275 @@
 # LGST_Ringworld
 Repository folder for the LGST Ringworld simulation codes
+
+
+
+Ringworld Particle Dynamics Simulation
+===============================================================================
+
+
+Overview
+===============================================================================
+
+   This computational framework simulates the atmospheric retention dynamics
+   of a rotating ringworld structure. It models the phase-space evolution
+   of molecular constituents in the exospheric region to determine whether
+   they exceed escape velocity or are recaptured by the ringworld's
+   gravitational potential well.
+   
+   The simulation implements a collisionless approach where particles evolve
+   independently without mutual interactions. The system operates in a
+   non-inertial rotating reference frame where Coriolis and centrifugal
+   pseudoforces dominate the particle kinematics.
+
+
+Coordinate System
+===============================================================================
+
+   * Origin      : Heliocentric (sun-centered)
+   * X-Y plane   : Equatorial plane of the ringworld structure
+   * Z-axis      : Orthogonal to the ringworld plane
+   * Reference   : Non-inertial rotating frame with angular velocity ω about z-axis
+
+
+Component Modules
+===============================================================================
+
+StochasticInput.py
+-------------------------------------------------------------------------------
+   
+   Generates initial conditions via stochastic sampling:
+   * Position vectors within defined spatial domains
+   * Velocity vectors from Maxwell-Boltzmann distribution
+   * Configurable molecular properties
+
+
+StochasticInputRK45Solver.py
+-------------------------------------------------------------------------------
+   
+   Primary execution module implementing:
+   * Adaptive Runge-Kutta particle trajectory integration
+   * Classification of escape and recapture events
+   * Statistical analysis of ensemble behavior
+   * Data visualization and persistence
+
+
+SolverSharedCodePlusSolar.py
+-------------------------------------------------------------------------------
+   
+   Physics engine implementing:
+   * Dynamical equations in the rotating reference frame
+   * Runge-Kutta 45 numerical integration
+   * Coriolis and centrifugal force calculations
+   * Optional heliocentric gravitational field
+
+
+TrajectoryClassification.py
+-------------------------------------------------------------------------------
+   
+   Analyzes trajectories against boundary conditions:
+   * Escape threshold detection
+   * Recapture event identification
+   * Boundary crossing quantification
+
+
+LeakRate.py
+-------------------------------------------------------------------------------
+   
+   Analyzes simulation results to determine atmospheric loss:
+   * Processes the particle classification data (escaped/recaptured)
+   * Calculates molecular escape fraction
+   * Computes mass flux rate using kinetic theory
+   * Estimates total atmospheric lifetime in years
+
+
+tester-mullis-NEW.py
+-------------------------------------------------------------------------------
+   
+   Verification module implementing:
+   * Reference frame transformations
+   * Analytical vs. numerical solution comparison
+   * Error quantification and validation
+
+
+Execution Instructions
+===============================================================================
+
+Primary Simulation
+-------------------------------------------------------------------------------
+
+   1. Run command:
+      python StochasticInputRK45Solver.py
+   
+   2. Expected outcomes:
+      - Progress updates displayed in console (particle processing status)
+      - Summary statistics shown after completion (escape/recapture percentages)
+      - Trajectory plots generated (if show_plots=True)
+      - Results file created in current directory with timestamp (particle_data_YYYYMMDD_HHMMSS.xlsx)
+   
+   3. Output files:
+      - Excel spreadsheet containing:
+        * Initial positions and velocities
+        * Final positions and velocities
+        * Boundary crossing counts
+        * Trajectory classification results (escaped, recaptured, resimulate)
+   
+   4. Visualization:
+      - X-Y Plot: Shows horizontal particle trajectories with atmosphere boundary
+      - Z-Y Plot: Shows vertical trajectories with all boundary lines
+      - Color-coded paths to distinguish multiple particles
+   
+   5. Parameter adjustment:
+      - Edit configuration parameters in the __main__ block:
+        * t_max: Simulation duration
+        * dt: Time step size
+        * num_particles: Number of particles to simulate
+
+
+Atmospheric Leak Rate Analysis
+-------------------------------------------------------------------------------
+
+   1. After running the primary simulation, open LeakRate.py
+   
+   2. Update the file variable with your simulation results filename:
+      file = 'particle_data_20250311_133411.xlsx'  # Change to your file
+   
+   3. Run command:
+      python LeakRate.py
+   
+   4. Output results:
+      - Molecular flux rate (kg/m²/s)
+      - Atmospheric lifetime (years)
+
+
+Verification Tool
+-------------------------------------------------------------------------------
+
+   Run command:
+      python tester-mullis-NEW.py
+
+	
+   Inputs:
+      - Initial positions and velocities in inertial frames
+      - Initial and fianl simulation time
+      - Angular Velocity 
+      - Gravitational acceleration constant      
+   
+   Outputs:
+      - Initial/final positions in inertial and rotating frames
+      - Calculated vs. numerical position comparisons
+      - Error metrics showing solver accuracy
+      - Angular velocity and rotation period information
+
+
+Configuration Parameters
+===============================================================================
+
+StochasticInputRK45Solver.py
+-------------------------------------------------------------------------------
+
+   * t_max                : Simulation time
+   * dt                   : Integration time step
+   * num_particles        : Desired number of particles
+   * is_rotating          : Reference frame selection
+   * radius               : Ringworld radius
+   * gravity              : Gravitational acceleration parameter
+   * save_results         : Data persistence control
+   * show_plots           : Visualization toggle
+
+
+TrajectoryClassification.py
+-------------------------------------------------------------------------------
+
+   * z_length             : Total length of the ringworld
+   * beta                 : Lateral boundary threshold (half of z_length)
+   * y_floor              : Lower vertical boundary (1 AU)
+   * alpha                : Atmospheric threshold
+   * y_min                : Minimum particle spawn height
+   * y_max                : Maximum particle spawn height
+   
+   * Classification thresholds    : Criteria for determining particle fate
+   * Boundary interaction rules   : How particles interact with boundaries
+   * Beta crossing detection      : Logic for counting boundary crossings
+
+
+StochasticInput.py
+-------------------------------------------------------------------------------
+
+   * T                    : Temperature
+   * m                    : Particle mass
+   * k_B                  : Boltzmann constant
+   * scale                : Velocity scale parameter
+   * unit_vector          : Direction normalization
+
+
+SolverSharedCodePlusSolar.py
+-------------------------------------------------------------------------------
+
+   * G                    : Gravitational constant
+   * solar_mu             : Heliocentric gravitational parameter
+   * rtol, atol           : Integration error tolerance
+   * method               : Integration scheme selection
+   * omega                : Angular velocity vector
+
+
+LeakRate.py
+-------------------------------------------------------------------------------
+
+   * P_0                  : Atmospheric pressure at sea level (Pa)
+   * K_b                  : Boltzmann constant (J/K)
+   * T_0                  : Standard temperature (K)
+   * m                    : Mass of diatomic molecule (kg)
+   * g                    : Gravitational acceleration (m/s²)
+   * n_0                  : Standard atmospheric molecular density (1/m³)
+   * d                    : Molecular diameter (m)
+
+
+Physical Models
+===============================================================================
+
+   1. Coriolis Effect: F = -2m(ω × v)
+   
+   2. Centrifugal Effect: F = -m(ω × (ω × r))
+   
+   3. Maxwell-Boltzmann Distribution: f(v) ∝ v²exp(-mv²/2kT)
+   
+   4. Boundary Dynamics: Classification based on geometric thresholds
+   
+   5. Atmospheric Leak Rate Model:
+      * Escape Fraction: f_escape = N_escaped / N_recaptured
+      * Mean Free Path: λ = (σ·n₀)⁻¹, where σ = π·d²/4
+      * Scale Height: h_s = k·T₀/(m·g)
+      * Exobase Altitude: alt = h_s·ln(h_s/λ)
+      * Molecular Density: n = n₀·e^(-alt/h_s)
+      * Mass Flux: φ_m = n·m·v_thermal·f_escape
+      * Atmospheric Lifetime: t_life = (P₀/g)/φ_m (converted to years)
+
+
+Parameter Modification
+===============================================================================
+
+   To modify simulation parameters:
+   
+   1. Edit values in their respective files as detailed in the
+      "Configuration Parameters" section
+      
+   2. For quick parameter adjustments, modify values in the
+      if __name__ == "__main__" block at the bottom of 
+      StochasticInputRK45Solver.py
+
+
+Individual Module Execution
+===============================================================================
+
+   Each module can be run individually when executed directly for testing
+   or specific analyses:
+   
+   1. Each file contains a test block at the end that executes only when
+      the file is run directly via:
+      - python [filename].py
+      
+   2. Before running modules individually, be sure to update any file paths
+      or input filenames within the code:
+      - In LeakRate.py: Update the 'file' variable with your result filename
+      - In TrajectoryClassification.py: Update the test file path if using the test feature
+      - In StochasticInput.py: No changes needed, runs a simple generation test

@@ -31,10 +31,10 @@ def LRVarInput(P_0_i, K_b_i, T_i, m_i, g_i, n_0_i, d_i):
 def find_lifetime(file):
     """
     Calculate atmospheric lifetime based on particle escape rates.
-
+    
     Parameters:
     file: Path to Excel file containing particle simulation results
-
+    
     Returns:
     str: Lifetime result message
     """

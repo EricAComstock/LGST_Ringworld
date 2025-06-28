@@ -5,7 +5,7 @@ Runs a particle trajectory simulation using randomly generated initial
 conditions, propagates them using RK45 integration, and classifies outcomes.
 
 Version: 1.0
-Author: Edwin Ontivoros
+Author: Edwin Ontiveros
 Date: April 29, 2025
 """
 
@@ -19,11 +19,9 @@ from datetime import datetime
 from SolverSharedCodePlusSolar import compute_motion, SSCPSVarInput
 from StochasticInput import stochastic_initial_conditions, SIVarInput
 from TrajectoryClassification import classify_trajectory, TCVarInput
-from LeakRate import find_lifetime, LRVarInput
 
 
-
-def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100, save_results=True, show_plots=False, find_leak_rate = True):
+def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100, save_results=True, show_plots=False, find_leak_rate=True):
     """
     Main function to run the particle simulation.
 
@@ -36,7 +34,8 @@ def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100, save_
     num_particles (int): Number of particles to simulate
     save_results (bool): Whether to save results to Excel
     show_plots (bool): Whether to display trajectory plots
-
+    find_leak_rate (bool): Whether to calculate leak rate after simulation
+    
     Returns:
     pd.DataFrame: DataFrame containing all particle simulation results
     """
@@ -63,8 +62,6 @@ def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100, save_
         if (i % fiveP == 0):
             percent = 100*i/num_particles
             print(str(percent) + "% percent done")
-
-
 
         # Get initial conditions for this particle
         initial_state    = stochastic_initial_conditions(m, T, y_min, y_max, z_length)
@@ -146,7 +143,7 @@ def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100, save_
         # Create timestamp for unique filename
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename  = f'particle_data_{timestamp}.xlsx'
-
+        
         try:
             # Save to Excel
             df.to_excel(filename, sheet_name='Particles', index=False)
@@ -163,8 +160,17 @@ def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100, save_
             print(f"Recaptured: {recaptured_count} ({recaptured_count / len(df) * 100:.1f}%)")
             print(f"Need resimulation: {resimulate_count} ({resimulate_count / len(df) * 100:.1f}%)")
 
-            if(find_leak_rate):
-                print(find_lifetime(filename))
+            # Calculate leak rate if requested
+            if find_leak_rate:
+                # Import LeakRate functions here to avoid circular import
+                from LeakRate import find_lifetime
+                
+                print("\n" + "="*60)
+                print("ATMOSPHERIC LEAK RATE ANALYSIS")
+                print("="*60)
+                lifetime_result = find_lifetime(filename)
+                print(f"\n{lifetime_result}")
+                print("="*60)
 
         except Exception as e:
             print(f"Error saving file: {e}")
@@ -177,17 +183,24 @@ def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100, save_
     return df
 
 
-
 if __name__ == "__main__":
     # Simulation parameters
     t_max           = 100                       # Total simulation time (s)
     dt              = 0.1                       # Time step (s)
-    num_particles   = 1000                      # Number of particles to simulate
-    g               = 9.81                      # Standard gravitational acceleration (m/s^2)
+    num_particles   = 50000                     # UPDATED: 50,000 particles as requested
+    
+    # GRAVITY - Change this value for different simulations:
+    g = 9.81                                    # 1.0g (Normal Earth gravity)
+    # g = 19.62                                 # 2.0g (Double gravity)
+    # g = 4.905                                 # 0.5g (Half gravity)
+    # g = 14.715                                # 1.5g 
+    # g = 2.4525                                # 0.25g
+    # g = 29.43                                 # 3.0g
+    
     T               = 289                       # Temperature (K)
-    z_length        = 10000 * 1000              # Total z-length (m)
-    y_floor         = 149597870691              # Floor value for y (m)
-    beta            = z_length / 2              # (m)
+    z_length        = 1000 * 1000               # UPDATED: 1000 km width as requested
+    y_floor         = 149597870691              # Floor value for y (1 AU)
+    beta            = z_length / 2              # Now 500 km
     alpha           = y_floor - (218 * 1000)    # (m)
     y_min           = alpha - 10000             # (m)
     y_max           = alpha                     # (m)
@@ -197,18 +210,22 @@ if __name__ == "__main__":
     n_0             = 2.687e25                  # Standard atmospheric molecular density (1/m^3)
     d               = 3.59e-10                  # Molecular diameter (m)
 
+    # Import and set parameters in LeakRate BEFORE importing find_lifetime
+    from LeakRate import LRVarInput
+    
+    # Initialize all modules with parameters
     SSCPSVarInput(g)
-    SIVarInput(T,m,y_min,y_max,z_length,y_floor)
-    TCVarInput(z_length,beta,y_floor,alpha,y_min,y_max)
-    LRVarInput(P_0,K_b,T,m,g,n_0,d)
+    SIVarInput(T, m, y_min, y_max, z_length, y_floor)
+    TCVarInput(z_length, beta, y_floor, alpha, y_min, y_max)
+    LRVarInput(P_0, K_b, T, m, g, n_0, d)  # Pass parameters to LeakRate
+    
     # Run simulation
     results = main(
-        radius    = y_min,  # Use y_min as radius
-        gravity   = g,     # Use Earth gravity
-        t_max     = t_max,
-        dt        = dt,
-        is_rotating=False,  # Solar gravity is disabled
-        num_particles=num_particles
+        radius=y_min,      # Use y_min as radius (1 AU)
+        gravity=g,         # Use whichever g value is uncommented above
+        t_max=t_max,
+        dt=dt,
+        is_rotating=False, # Solar gravity is disabled
+        num_particles=num_particles,
+        find_leak_rate=True  # Calculate leak rate after simulation
     )
-
-

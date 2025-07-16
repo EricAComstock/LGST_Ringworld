@@ -42,7 +42,7 @@ def stochastic_initial_conditions(T, y_min, y_max, z_length, comp_list = None):
     y_max (int): Maximum y-coordinate for particle spawning (m)
     z_length (int): Total z-length of the domain (m)
     comp_list (list of tuples (string, float, float, float)): List of all species at a given altitude. 
-        Individual species tuples contain species name, mass, charge, and density (kg, C, particles/m^3)
+        Individual species tuples contain species name, mass, charge, and density (no units, kg, C, particles/m^3)
 
     Returns:
     list: [x, y, z, vx, vy, vz, m, q] initial position and velocity components, and particle mass and charge

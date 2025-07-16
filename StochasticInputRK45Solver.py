@@ -1,12 +1,9 @@
 """
 StochasticInputRK45Solver.py
+Main simulation driver that runs particle trajectory simulations using RK45
+integration and classifies atmospheric escape/recapture outcomes.
 
-Runs a particle trajectory simulation using randomly generated initial
-conditions, propagates them using RK45 integration, and classifies outcomes.
-
-Version: 1.0
-Author: Edwin Ontivoros
-Date: April 29, 2025
+V1.0, Edwin Ontiveros, April 29, 2025
 """
 
 import numpy as np
@@ -15,95 +12,95 @@ import os
 import matplotlib.pyplot as plt
 from datetime import datetime
 
-# Import from other modules
+# Path operations
 from SolverSharedCodePlusSolar import compute_motion, SSCPSVarInput
 from StochasticInput import stochastic_initial_conditions, SIVarInput
 from TrajectoryClassification import classify_trajectory, TCVarInput
-from LeakRate import find_lifetime, LRVarInput
 
 
-
-def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100, save_results=True, show_plots=False, find_leak_rate = True):
+def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100,
+         save_results=True, show_plots=False, find_leak_rate=True):
     """
-    Main function to run the particle simulation.
+    Main simulation function for particle trajectory analysis.
 
-    Parameters:
-    radius (float): Radius for calculating omega (m)
-    gravity (float): Gravity for calculating omega (m/s²)
-    t_max (float): Maximum simulation time (s)
-    dt (float): Time step (s)
-    is_rotating (bool): Whether the reference frame is rotating
-    num_particles (int): Number of particles to simulate
-    save_results (bool): Whether to save results to Excel
-    show_plots (bool): Whether to display trajectory plots
-    
-    Returns:
-    pd.DataFrame: DataFrame containing all particle simulation results
+    results = main(radius, gravity, t_max, dt, is_rotating, num_particles,
+                   save_results, show_plots, find_leak_rate)
+
+    Inputs:
+    radius          Radius for calculating omega [m]
+    gravity         Gravity for calculating omega [m/s²]
+    t_max           Maximum simulation time [s]
+    dt              Time step [s]
+    is_rotating     Whether reference frame is rotating [bool]
+    num_particles   Number of particles to simulate [int]
+    save_results    Whether to save results to Excel [bool]
+    show_plots      Whether to display trajectory plots [bool]
+    find_leak_rate  Whether to calculate leak rate [bool]
+
+    Outputs:
+    results  DataFrame containing all particle simulation results
     """
     all_data = []
 
     print(f"Processing {num_particles} particles...")
 
-    # Create plots if needed
+    # Create plots if requested
     if show_plots:
-        plt.figure(1, figsize=(10, 8))  # X-Y plot
+        plt.figure(1, figsize=(10, 8))
         plt.title("X-Y Trajectories")
-        plt.xlabel("X Position (m)")
-        plt.ylabel("Y Position (m)")
+        plt.xlabel("X Position [m]")
+        plt.ylabel("Y Position [m]")
 
-        plt.figure(2, figsize=(10, 8))  # Z-Y plot
+        plt.figure(2, figsize=(10, 8))
         plt.title("Z-Y Trajectories")
-        plt.xlabel("Z Position (m)")
-        plt.ylabel("Y Position (m)")
+        plt.xlabel("Z Position [m]")
+        plt.ylabel("Y Position [m]")
 
     # Process each particle
     for i in range(num_particles):
-        # Progress - by 5%
-        fiveP = num_particles/20
+        # Progress indicator - every 5%
+        fiveP = num_particles / 20
         if (i % fiveP == 0):
-            percent = 100*i/num_particles
+            percent = 100 * i / num_particles
             print(str(percent) + "% percent done")
 
-
-
-        # Get initial conditions for this particle
-        initial_state    = stochastic_initial_conditions(m, T, y_min, y_max, z_length)
+        # Generate initial conditions
+        initial_state = stochastic_initial_conditions(m, T, y_min, y_max, z_length)
         initial_position = initial_state[:3]
         initial_velocity = initial_state[3:]
 
-        # Compute trajectory
         try:
-            # Call compute_motion to get final position, velocity and full trajectory
+            # Compute trajectory
             final_position, final_velocity, solution = compute_motion(
                 initial_position, initial_velocity, radius, gravity, t_max, dt, None
             )
 
-            # Extract trajectory data from solution
-            trajectory  = solution.y[:3, :].T  # Transpose for (n_timesteps, 3) shape
+            # Extract trajectory data
+            trajectory = solution.y[:3, :].T  # Shape: (n_timesteps, 3)
 
-            # Convert trajectory to DataFrame for classification
+            # Convert to DataFrame for classification
             solution_df = pd.DataFrame(trajectory, columns=[0, 1, 2])
 
-            # Classify trajectory using imported boundary values
+            # Classify trajectory
             beta_crossings, result = classify_trajectory(alpha, beta, y_floor, solution_df)
 
-            # Create data row for this particle
+            # Store particle data
             particle_data = {
                 'Particle #': i + 1,
-                'Initial x' : initial_position[0],
-                'Initial y' : initial_position[1],
-                'Initial z' : initial_position[2],
+                'Initial x': initial_position[0],
+                'Initial y': initial_position[1],
+                'Initial z': initial_position[2],
                 'Initial vx': initial_velocity[0],
                 'Initial vy': initial_velocity[1],
                 'Initial vz': initial_velocity[2],
-                'Final x'   : final_position[0],
-                'Final y'   : final_position[1],
-                'Final z'   : final_position[2],
-                'Final vx'  : final_velocity[0],
-                'Final vy'  : final_velocity[1],
-                'Final vz'  : final_velocity[2],
+                'Final x': final_position[0],
+                'Final y': final_position[1],
+                'Final z': final_position[2],
+                'Final vx': final_velocity[0],
+                'Final vy': final_velocity[1],
+                'Final vz': final_velocity[2],
                 'Beta crossings': beta_crossings,
-                'Result'        : result
+                'Result': result
             }
 
             all_data.append(particle_data)
@@ -119,7 +116,7 @@ def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100, save_
         except Exception as e:
             print(f"Error processing particle {i + 1}: {e}")
 
-    # Create DataFrame with all results
+    # Create results DataFrame
     df = pd.DataFrame(all_data)
 
     # Add reference lines to plots
@@ -137,23 +134,21 @@ def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100, save_
         plt.axvline(x=-beta, color='b', linestyle='--')
         plt.legend()
 
-        # Show plots if requested
-        if show_plots:
-            plt.show()
+        plt.show()
 
     # Save results if requested
     if save_results and not df.empty:
-        # Create timestamp for unique filename
+        # Create unique filename with timestamp
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename  = f'particle_data_{timestamp}.xlsx'
-        
+        filename = f'particle_data_{timestamp}.xlsx'
+
         try:
             # Save to Excel
             df.to_excel(filename, sheet_name='Particles', index=False)
             print(f"\nResults saved to: {filename}")
 
-            # Additional summary statistics
-            escaped_count    = df[df['Result'] == 'escaped'].shape[0]
+            # Calculate summary statistics
+            escaped_count = df[df['Result'] == 'escaped'].shape[0]
             recaptured_count = df[df['Result'] == 'recaptured'].shape[0]
             resimulate_count = df[df['Result'] == 'resimulate'].shape[0]
 
@@ -163,12 +158,20 @@ def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100, save_
             print(f"Recaptured: {recaptured_count} ({recaptured_count / len(df) * 100:.1f}%)")
             print(f"Need resimulation: {resimulate_count} ({resimulate_count / len(df) * 100:.1f}%)")
 
-            if(find_leak_rate):
-                print(find_lifetime(filename))
+            # Calculate leak rate if requested
+            if find_leak_rate:
+                from LeakRate import find_lifetime  # Import here to avoid circular import
+
+                print("\n" + "=" * 60)
+                print("ATMOSPHERIC LEAK RATE ANALYSIS")
+                print("=" * 60)
+                lifetime_result = find_lifetime(filename)
+                print(f"\n{lifetime_result}")
+                print("=" * 60)
 
         except Exception as e:
             print(f"Error saving file: {e}")
-            # Try saving to desktop as fallback
+            # Fallback to desktop
             desktop = os.path.join(os.path.expanduser('~'), 'Desktop')
             backup_filename = os.path.join(desktop, filename)
             df.to_excel(backup_filename, sheet_name='Particles', index=False)
@@ -177,38 +180,53 @@ def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100, save_
     return df
 
 
-
+# Main execution
 if __name__ == "__main__":
     # Simulation parameters
-    t_max           = 100                       # Total simulation time (s)
-    dt              = 0.1                       # Time step (s)
-    num_particles   = 1000                      # Number of particles to simulate
-    g               = 9.81                      # Standard gravitational acceleration (m/s^2)
-    T               = 289                       # Temperature (K)
-    z_length        = 10000 * 1000              # Total z-length (m)
-    y_floor         = 149597870691              # Floor value for y (m)
-    beta            = z_length / 2              # (m)
-    alpha           = y_floor - (218 * 1000)    # (m)
-    y_min           = alpha - 10000             # (m)
-    y_max           = alpha                     # (m)
-    P_0             = 101325                    # Atmospheric pressure at sea level (Pa)
-    K_b             = 1.380649e-23              # Boltzmann constant (J/K)
-    m               = 2.6566962e-26 * 2         # Mass of diatomic molecule (kg)
-    n_0             = 2.687e25                  # Standard atmospheric molecular density (1/m^3)
-    d               = 3.59e-10                  # Molecular diameter (m)
+    t_max = 100  # Total simulation time [s]
+    dt = 0.1  # Time step [s]
+    num_particles = 50000  # Number of particles to simulate
 
+    # Physical parameters - modify gravity for different simulations
+    g = 9.81  # 1.0g - Standard gravity [m/s²]
+    # g = 19.62                  # 2.0g - Double gravity [m/s²]
+    # g = 4.905                  # 0.5g - Half gravity [m/s²]
+    # g = 14.715                 # 1.5g [m/s²]
+    # g = 2.4525                 # 0.25g [m/s²]
+    # g = 29.43                  # 3.0g [m/s²]
+
+    # Atmospheric parameters
+    T = 289  # Temperature [K]
+    P_0 = 101325  # Atmospheric pressure at sea level [Pa]
+    K_b = 1.380649e-23  # Boltzmann constant [J/K]
+    m = 2.6566962e-26 * 2  # Mass of diatomic molecule [kg]
+    n_0 = 2.687e25  # Molecular density [1/m³]
+    d = 3.59e-10  # Molecular diameter [m]
+
+    # Geometric parameters
+    z_length = 1000 * 1000  # Ringworld width [m]
+    y_floor = 149597870691  # Floor value (1 AU) [m]
+    beta = z_length / 2  # Lateral boundary [m]
+    alpha = y_floor - (218 * 1000)  # Atmosphere boundary [m]
+    y_min = alpha - 10000  # Min spawn height [m]
+    y_max = alpha  # Max spawn height [m]
+
+    # Import LeakRate parameter setter
+    from LeakRate import LRVarInput
+
+    # Initialize all modules with parameters
     SSCPSVarInput(g)
-    SIVarInput(T,m,y_min,y_max,z_length,y_floor)
-    TCVarInput(z_length,beta,y_floor,alpha,y_min,y_max)
-    LRVarInput(P_0,K_b,T,m,g,n_0,d)
+    SIVarInput(T, m, y_min, y_max, z_length, y_floor)
+    TCVarInput(z_length, beta, y_floor, alpha, y_min, y_max)
+    LRVarInput(P_0, K_b, T, m, g, n_0, d)
+
     # Run simulation
     results = main(
-        radius    = y_min,  # Use y_min as radius
-        gravity   = g,     # Use Earth gravity
-        t_max     = t_max,
-        dt        = dt,
-        is_rotating=False,  # Solar gravity is disabled
-        num_particles=num_particles
+        radius=y_min,  # Use y_min as radius (1 AU)
+        gravity=g,  # Selected gravity value
+        t_max=t_max,
+        dt=dt,
+        is_rotating=False,  # Solar gravity disabled
+        num_particles=num_particles,
+        find_leak_rate=True  # Calculate atmospheric lifetime
     )
-
-

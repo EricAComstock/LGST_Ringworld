@@ -78,7 +78,7 @@ def equations_of_motion_rotating(t, state, omega, solar_mu=None):
     solar_mu: Solar gravity parameter (None to disable)
 
     Returns:
-    Derivatives of state vector [dx/dt, dy/dt, dz/dt, dvx/dt, dvy/dt, dvz/dt]
+    Derivatives of state vector [dx/dt, dy/dt, dz/dt, dvx/dt, dvy/dt, dvz/dt, dq/dt, dm/dt]
     """
     r, v = state[:3], state[3:]
 
@@ -102,8 +102,8 @@ def equations_of_motion_rotating(t, state, omega, solar_mu=None):
         solar_acceleration = calculate_solar_gravity(r, solar_mu)
         dv_dt += solar_acceleration
 
-    # Return derivatives [dx/dt, dy/dt, dz/dt, dvx/dt, dvy/dt, dvz/dt]
-    return np.concatenate((dr_dt, dv_dt))
+    # Return derivatives [dx/dt, dy/dt, dz/dt, dvx/dt, dvy/dt, dvz/dt, dq/dt, dm/dt]
+    return np.concatenate((dr_dt, dv_dt, 0, 0))
 
 def compute_motion(initial_position, initial_velocity, radius, gravity, t_max, dt, solar_mu=None):
     """
@@ -159,10 +159,20 @@ def compute_motion(initial_position, initial_velocity, radius, gravity, t_max, d
     # Return the final position, final velocity, and the full solution
     return final_position.tolist(), final_velocity.tolist(), solution
 
-def calculate_acceleration_from_mag_field(particle_charge: float, particle_velocity,particle_mass:float,magnetic_field, electric_field):
-    #a =  magnetic Force/mass
-    #magnetic force = Q(V x B)
-    #electric force = QE
+def calculate_acceleration_from_lorentz_force(particle_charge: float, particle_velocity,particle_mass:float,magnetic_field, electric_field):
+    """
+    Finds the acceleration a particle expiriences under electric and magnetic forces
+
+    Parameters:
+    particle_charge: charge of the particle in coulombs (C)
+    particle_velocity: 3D vector representing the particle's current velocity (m/s)
+    particle_mass: mass of the particle (kg)
+    magnetic_field: 3D vector representing the B field expirienced by the particle at a particular time and place (N/C)
+    electric_field: 3D vecotr representing the E field expirienced by the particle at a particular time and place (T = N*s/C/m)
+
+    Returns:
+    acceleration: 3D vector representing how the lorenz force affects the particle (m/s^2)
+    """
     Q = particle_charge
     V = particle_velocity
     M = particle_mass

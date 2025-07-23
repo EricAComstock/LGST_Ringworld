@@ -4,20 +4,18 @@ SolverSharedCodePlusSolar.py
 Provides physics utility functions for rotating reference frames, including
 angular velocity computation, solar gravity, and RK45-based motion integration.
 
-Version: 1.0
-Author: Edwin Ontivoros
-Date: April 29, 2025
+1.0, Edwin Ontivoros, April 29, 2025
+1.1, James Stewart, June 2, 2025
 """
 
 import numpy as np
+import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
 
 # Constants
-g = 9.81  # Gravity on Earth in m/s²
-
-def SSCPSVarInput(g_i):
-    global g
-    g = g_i
+g = 6.6743e-11 # Universal Gravitational Constant
+g = g/1e9 
+print(g)
 
 def calculate_omega(radius, gravity):
     """
@@ -105,6 +103,92 @@ def equations_of_motion_rotating(t, state, omega, solar_mu=None):
     # Return derivatives [dx/dt, dy/dt, dz/dt, dvx/dt, dvy/dt, dvz/dt, dq/dt, dm/dt]
     return np.concatenate((dr_dt, dv_dt, 0, 0))
 
+"""
+Implement gravity from 3rd bodies (planets and other stars) as a function that outputs gravitational acceleration, and inputs a structure containing a list of third body positions
+Make sure to convert the 3rd body positions from the inertial to the rotating reference frame (tester-Mullis-new.py has a lot of the code you will need)
+"""
+
+def inertial_to_rotating(i_position, i_velocity, omega, theta):
+    """
+    Transform position and velocity from inertial to rotating frame.
+
+    Parameters:
+    i_position (np.array): Position vector in inertial frame [x, y, z]
+    i_velocity (np.array): Velocity vector in inertial frame [vx, vy, vz]
+    omega (float): Angular velocity magnitude (rad/s)
+    theta (float): Current rotation angle (rad)
+
+    Returns:
+    tuple: (r_position, r_velocity) in rotating frame
+    """
+    # For clockwise rotation (negative omega), the rotation matrix is:
+    R_i2r = np.array([
+        [np.cos(theta),  np.sin(theta), 0],
+        [-np.sin(theta), np.cos(theta), 0],
+        [0, 0, 1]
+    ])
+
+    # Transform position
+    r_position = R_i2r @ i_position
+
+    # Transform velocity: v_rot = R·v_inertial - (ω × r_rot)
+    omega_vector = np.array([0, 0, omega])
+    r_velocity   = R_i2r @ i_velocity - np.cross(omega_vector, r_position)
+
+    return r_position, r_velocity
+
+def compute_gravity(i_position, i_velocity, omega, theta, mass, rw_position):
+    """
+    Calculates gravitational acceleration of the Ringworld under influence of third-body objects.
+
+    Parameters: 
+    i_position (list of np.array): Position vector in inertial frame [x, y, z] of third-body objects
+    i_velocity (list of np.array): Velocity vector in inertial frame [vx, vy, vz] of third-body objects
+    omega (number): Angular velocity magnitude (rad/s) 
+    theta (number): Current rotation angle (rad)
+    mass (list of float): Mass of the third-body objects (kg)
+    rw_position (np.array): Position vector in inertial frame [x, y, z] of Ringworld
+
+    Returns:
+    acceleration_ringworld (np.array): Acceleration of the Ringworld. 
+    """
+
+    acceleration_ringworld = np.array([0.,0.,0.]) # Initialize acceleration array
+
+    for i in range(len(i_position)): # Loop through all the third-bodies
+        
+        # Convert from inertial to rotating reference frame
+        r_position = inertial_to_rotating(i_position[i], i_velocity[i], omega, theta)[0]
+
+        # Add to acceleration vector for Ringworld
+        acceleration_ringworld += (g * mass[i] / (np.linalg.norm(r_position - rw_position) ** 3) * (r_position - rw_position) - g * mass[i] / (np.linalg.norm(r_position) ** 3) * r_position)
+
+    return acceleration_ringworld
+
+def save_fig(i_position, i_velocity, omega, mass, rw_position):
+    """
+    Calculates gravitational acceleration of the Ringworld under influence of third-body objects.
+
+    Parameters: 
+    i_position (list of np.array): Position vector in inertial frame [x, y, z] of third-body objects
+    i_velocity (list of np.array): Velocity vector in inertial frame [vx, vy, vz] of third-body objects
+    omega (number): Angular velocity magnitude (rad/s) 
+    mass (list of float): Mass of the third-body objects (kg)
+    rw_position (np.array): Position vector in inertial frame [x, y, z] of Ringworld
+
+    Returns:
+    fig.png (plot): Plot of gravity norm vs. angle for many angles
+    """
+    plt.figure()
+    angles = [0, np.pi/6, 2*np.pi/6, 3*np.pi/6, 4*np.pi/6, 5*np.pi/6, 6*np.pi/6, 7*np.pi/6, 8*np.pi/6, 9*np.pi/6, 10*np.pi/6, 11*np.pi/6]
+    for theta in angles:
+        acceleration_ringworld = compute_gravity(i_position, i_velocity, omega, theta, mass, rw_position)
+        gravity_norm = np.linalg.norm(acceleration_ringworld)
+        plt.plot(theta, gravity_norm)
+        plt.savefig('fig.png')
+    
+
+compute_gravity([[2e8, 0., 0.]], [[0., 0., 0.]], [1e-6], [0.], [1e13], [1e8, 1e8, 0.])
 def compute_motion(initial_position, initial_velocity, radius, gravity, t_max, dt, solar_mu=None):
     """
     Computes particle motion in the rotating frame using RK45 and returns the final state.
@@ -150,14 +234,14 @@ def compute_motion(initial_position, initial_velocity, radius, gravity, t_max, d
         method='RK45',
         rtol=1e-12,
         atol=1e-12
-    )
-
+    ) 
     # Extract the final state
     final_position = solution.y[:3, -1]
     final_velocity = solution.y[3:, -1]
 
     # Return the final position, final velocity, and the full solution
     return final_position.tolist(), final_velocity.tolist(), solution
+
 
 def calculate_acceleration_from_lorentz_force(particle_charge: float, particle_velocity,particle_mass:float,magnetic_field, electric_field):
     """
@@ -181,3 +265,4 @@ def calculate_acceleration_from_lorentz_force(particle_charge: float, particle_v
     force = Q * (E+np.cross(V,B))
     acceleration = force/M
     return acceleration
+

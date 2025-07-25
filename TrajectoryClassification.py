@@ -1,87 +1,116 @@
 """
 TrajectoryClassification.py
-
-Defines boundary conditions and logic to classify particle trajectories as
+Defines boundary conditions and classifies particle trajectories as
 escaped, recaptured, or needing resimulation based on their path.
 
-Version: 1.0
-Author: Nick Gaug
-Date: April 29, 2025
+V1.0, Nick Gaug, April 29, 2025
 """
-
 
 import numpy as np
 import pandas as pd
 
-# Boundary conditions - change these values to modify simulation boundaries
-z_length = 1600000 * 1000  # meters
-beta     = z_length / 2
-y_floor  = 149597870691
-alpha    = y_floor - (218 * 1000)
-y_min    = alpha - 10000
-y_max    = alpha  # meters
+# Default boundary conditions
+z_length = 10000 * 1000  # Total z-length [m]
+beta = z_length / 2  # Lateral boundary [m]
+y_floor = 149597870691  # Ringworld floor [m]
+alpha = y_floor - (218 * 1000)  # Atmosphere boundary [m]
+y_min = alpha - 10000  # Minimum spawn height [m]
+y_max = alpha  # Maximum spawn height [m]
 
-# A particle escapes if it travels below alpha while outside of beta or ends the simulation outside of beta
-# A particle is recaptured if it ends the simulation below alpha and within beta or if it collides with beta below alpha
-# A particle is resimulated if it ends the simulation above alpha but within beta (it may leave beta and then reenter)
+
+def TCVarInput(z_length_i, beta_i, y_floor_i, alpha_i, y_min_i, y_max_i):
+    """
+    Set global parameters for trajectory classification.
+    Called by StochasticInputRK45Solver.py to pass boundary parameters.
+
+    TCVarInput(z_length_i, beta_i, y_floor_i, alpha_i, y_min_i, y_max_i)
+
+    Inputs:
+    z_length_i  Total z-dimension length (ringworld width) [m]
+    beta_i      Lateral boundary threshold (half of z_length) [m]
+    y_floor_i   Minimum y value (ringworld floor) [m]
+    alpha_i     Atmosphere boundary threshold [m]
+    y_min_i     Minimum particle spawn height [m]
+    y_max_i     Maximum particle spawn height [m]
+
+    Outputs:
+    None (sets global variables)
+    """
+    global z_length, beta, y_floor, alpha, y_min, y_max
+    z_length = z_length_i  # Ringworld width
+    beta = beta_i  # Lateral boundary
+    y_floor = y_floor_i  # Floor boundary
+    alpha = alpha_i  # Atmosphere boundary
+    y_min = y_min_i  # Min spawn height
+    y_max = y_max_i  # Max spawn height
+
 
 def classify_trajectory(alpha, beta, y_floor, trajectories):
     """
-    Classifies a particle trajectory based on its path and final position.
+    Classifies particle trajectory based on path and final position.
+    Determines if particle escaped, was recaptured, or needs resimulation.
 
-    Parameters:
-    alpha (float): Threshold radius value (typically y_min + atmosphere height)
-    beta (float): Threshold z value (typically half of z_length)
-    y_floor (float): Minimum y value (floor of the simulation area)
-    trajectories (pd.DataFrame): DataFrame containing trajectory coordinates [x, y, z, ...] in columns 0, 1, 2
+    beta_crossings, result = classify_trajectory(alpha, beta, y_floor, trajectories)
 
-    Returns:
-    tuple: (beta_crossings, result) where:
-        - beta_crossings (int): Count of how many times the particle crossed the beta boundary
-        - result (str): Classification as 'recaptured', 'escaped', or 'resimulate'
+    Inputs:
+    alpha        Atmosphere boundary radius [m]
+    beta         Lateral boundary threshold [m]
+    y_floor      Minimum y value (ringworld floor) [m]
+    trajectories DataFrame with columns [x, y, z] coordinates
+
+    Outputs:
+    beta_crossings  Number of beta boundary crossings [int]
+    result          Classification: 'escaped', 'recaptured', or 'resimulate' [string]
+
+    Classification rules:
+    - Escaped: Goes below alpha while outside beta, or ends outside beta
+    - Recaptured: Ends below alpha within beta, or hits beta while below alpha
+    - Resimulate: Ends above alpha within beta (undetermined fate)
     """
-    recaptured     = False
-    escaped        = False
-    resimulate     = False
+    # Initialize classification flags
+    recaptured = False
+    escaped = False
+    resimulate = False
     beta_crossings = 0
 
+    # Analyze trajectory timestep by timestep
     for i in range(1, len(trajectories)):
         # Current position
-        x  = trajectories.iloc[i, 0]
-        y  = trajectories.iloc[i, 1]
-        z  = trajectories.iloc[i, 2]
-        r  = np.sqrt(x ** 2 + y ** 2)
+        x = trajectories.iloc[i, 0]  # x-coordinate
+        y = trajectories.iloc[i, 1]  # y-coordinate
+        z = trajectories.iloc[i, 2]  # z-coordinate
+        r = np.sqrt(x ** 2 + y ** 2)  # Radial distance
 
         # Previous position
-        x_prev = trajectories.iloc[i - 1, 0]
-        y_prev = trajectories.iloc[i - 1, 1]
-        z_prev = trajectories.iloc[i - 1, 2]
-        r_prev = np.sqrt(x_prev ** 2 + y_prev ** 2)
+        x_prev = trajectories.iloc[i - 1, 0]  # Previous x
+        y_prev = trajectories.iloc[i - 1, 1]  # Previous y
+        z_prev = trajectories.iloc[i - 1, 2]  # Previous z
+        r_prev = np.sqrt(x_prev ** 2 + y_prev ** 2)  # Previous radius
 
-        # Check if particle has entered the side of ringworld
+        # Check if particle entered side of ringworld
         if abs(z) >= beta and r > alpha and not recaptured and not escaped:
-            if abs(z_prev) < beta:  # If this is true, it hit the side
+            if abs(z_prev) < beta:  # Hit the side boundary
                 recaptured = True
-            else:  # Otherwise, it came from above
+            else:  # Came from above atmosphere
                 escaped = True
 
-        # Check if we hit the bottom of the ringworld
+        # Check if hit bottom of ringworld
         if r < y_floor and r_prev > y_floor and abs(z) <= beta:
             escaped = True
 
-        # Log beta crossings by seeing if the particle crossed beta between two timesteps
+        # Count beta boundary crossings
         if abs(z) >= beta and abs(z_prev) < beta:
             beta_crossings += 1
         if abs(z) <= beta and abs(z_prev) > beta:
             beta_crossings += 1
 
-    # Account for particles that did not hit one of the initial ending conditions
+    # Classify particles that didn't hit ending conditions during trajectory
     if not recaptured and not escaped:
-        if abs(z) <= beta and r < alpha:
+        if abs(z) <= beta and r < alpha:  # Inside bounds, below atmosphere
             resimulate = True
-        elif abs(z) <= beta and r > alpha:
+        elif abs(z) <= beta and r > alpha:  # Inside bounds, above atmosphere
             recaptured = True
-        else:
+        else:  # Outside lateral bounds
             escaped = True
 
     # Determine final result
@@ -93,6 +122,7 @@ def classify_trajectory(alpha, beta, y_floor, trajectories):
         result = 'resimulate'
 
     return beta_crossings, result
+
 
 # Testing code - only runs when this file is executed directly
 if __name__ == "__main__":

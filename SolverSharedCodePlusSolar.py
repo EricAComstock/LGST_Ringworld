@@ -122,6 +122,11 @@ def inertial_to_rotating(i_position, i_velocity, omega, theta):
     tuple: (r_position, r_velocity) in rotating frame
     """
     # For clockwise rotation (negative omega), the rotation matrix is:
+    print("Theta: ", theta)
+    theta = theta[0]
+    omega = omega[0]
+    print("Theta: ", theta)
+
     R_i2r = np.array([
         [np.cos(theta),  np.sin(theta), 0],
         [-np.sin(theta), np.cos(theta), 0],

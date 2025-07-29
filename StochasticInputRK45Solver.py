@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 
 # Path operations
-from SolverSharedCodePlusSolar import compute_motion, SSCPSVarInput
+from SolverSharedCodePlusSolar import compute_motion
 from StochasticInput import stochastic_initial_conditions, SIVarInput
 from TrajectoryClassification import classify_trajectory, TCVarInput
 
@@ -185,7 +185,7 @@ if __name__ == "__main__":
     # Simulation parameters
     t_max = 100  # Total simulation time [s]
     dt = 0.1  # Time step [s]
-    num_particles = 50000  # Number of particles to simulate
+    num_particles = 500  # Number of particles to simulate
 
     # Physical parameters - modify gravity for different simulations
     g = 9.81  # 1.0g - Standard gravity [m/s²]
@@ -215,7 +215,6 @@ if __name__ == "__main__":
     from LeakRate import LRVarInput
 
     # Initialize all modules with parameters
-    SSCPSVarInput(g)
     SIVarInput(T, m, y_min, y_max, z_length, y_floor)
     TCVarInput(z_length, beta, y_floor, alpha, y_min, y_max)
     LRVarInput(P_0, K_b, T, m, g, n_0, d)

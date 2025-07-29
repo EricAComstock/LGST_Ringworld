@@ -186,9 +186,7 @@ def save_fig(i_position, i_velocity, omega, mass, rw_position):
         gravity_norm = np.linalg.norm(acceleration_ringworld)
         plt.plot(theta, gravity_norm)
         plt.savefig('fig.png')
-    
 
-compute_gravity([[2e8, 0., 0.]], [[0., 0., 0.]], [1e-6], [0.], [1e13], [1e8, 1e8, 0.])
 def compute_motion(initial_position, initial_velocity, radius, gravity, t_max, dt, solar_mu=None):
     """
     Computes particle motion in the rotating frame using RK45 and returns the final state.

@@ -13,9 +13,8 @@ import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
 
 # Constants
-g = 6.6743e-11 # Universal Gravitational Constant
-g = g/1e9 
-print(g)
+G = 6.6743e-11 # Universal Gravitational Constant
+G = G/1e9 
 
 def calculate_omega(radius, gravity):
     """
@@ -161,7 +160,7 @@ def compute_gravity(i_position, i_velocity, omega, theta, mass, rw_position):
         r_position = inertial_to_rotating(i_position[i], i_velocity[i], omega, theta)[0]
 
         # Add to acceleration vector for Ringworld
-        acceleration_ringworld += (g * mass[i] / (np.linalg.norm(r_position - rw_position) ** 3) * (r_position - rw_position) - g * mass[i] / (np.linalg.norm(r_position) ** 3) * r_position)
+        acceleration_ringworld += (G * mass[i] / (np.linalg.norm(r_position - rw_position) ** 3) * (r_position - rw_position) - G * mass[i] / (np.linalg.norm(r_position) ** 3) * r_position)
 
     return acceleration_ringworld
 

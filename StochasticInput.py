@@ -2,8 +2,10 @@
 StochasticInput.py
 Generates randomized initial particle positions and velocities based on a
 Maxwell-Boltzmann distribution for atmospheric thermal simulations.
+Particles are assigned a species given a composition of an atmosphere at an altitude
 
 V1.0, Nick Gaug, April 29, 2025
+V1.1, James Chambers, July 23, 2025
 """
 
 import numpy as np
@@ -46,29 +48,46 @@ def SIVarInput(T_i, m_i, y_min_i, y_max_i, z_length_i, y_floor_i):
     y_floor = y_floor_i  # Ringworld floor
 
 
-def stochastic_initial_conditions(m, T, y_min, y_max, z_length):
+def stochastic_initial_conditions(T, y_min, y_max, z_length, comp_list = None):
     """
     Generates stochastic initial conditions for particle position and velocity.
     Velocity sampled from Maxwell-Boltzmann distribution at temperature T.
 
-    [x, y, z, vx, vy, vz] = stochastic_initial_conditions(m, T, y_min, y_max, z_length)
+    Parameters:
+    T (float): Temperature (K)
+    y_min (int): Minimum y-coordinate for particle spawning (m)
+    y_max (int): Maximum y-coordinate for particle spawning (m)
+    z_length (int): Total z-length of the domain (m)
+    comp_list (list of tuples (string, float, float, float)): List of all species at a given altitude. 
+        Individual species tuples contain species name, mass, charge, and density (no units, kg, C, particles/m^3)
 
-    Inputs:
-    m         Particle mass [kg]
-    T         Temperature [K]
-    y_min     Minimum y-coordinate for particle spawning [m]
-    y_max     Maximum y-coordinate for particle spawning [m]
-    z_length  Total z-length of the domain [m]
-
-    Outputs:
-    [x, y, z, vx, vy, vz]  Initial position and velocity components [m, m/s]
+    Returns:
+    list: [x, y, z, vx, vy, vz, m, q] initial position and velocity components, and particle mass and charge
     """
     # Generate random position
-    z_min = -int(z_length / 2)  # Left boundary
-    z_max = int(z_length / 2)  # Right boundary
-    z = random.randint(z_min, z_max)  # Random z position
-    y = random.randint(y_min, y_max)  # Random altitude
-    x = 0  # Start at x = 0
+    z_min = -int(z_length / 2)              # Left boundary
+    z_max = int(z_length / 2)               # Right boundary
+    z = random.randint(z_min, z_max)        # Random z position
+    y = random.randint(y_min, y_max)        # Random altitude
+    x = 0                                   # Start at x = 0
+
+
+
+    #set mass and charge
+    total_density = 0
+    for particle in comp_list: total_density += particle[3]               #add up all particle densities
+    weights = []
+    for particle in comp_list: weights.append(particle[3]/total_density)  #particles are more likely to be chosen if their density makes up a higher proportion of the composition
+    ind = np.random.choice(a=range(len(comp_list)),size=1,p=weights)
+    selected_particle = comp_list[ind[0]]
+    m = selected_particle[1]                                              #get mass of selected paricle
+    q = selected_particle[2]                                              #get charge of selected paricle
+
+
+
+    #get velocity
+    random_vector = np.random.normal(size=3)                       # Generate random 3D vector
+    unit_vector   = random_vector / np.linalg.norm(random_vector)  # Normalize to unit length
 
     # Generate random velocity direction
     random_vector = np.random.normal(size=3)  # Random 3D vector
@@ -82,10 +101,12 @@ def stochastic_initial_conditions(m, T, y_min, y_max, z_length):
     # Scale unit vector by magnitude
     [vx, vy, vz] = [float(v) for v in velocity_magnitude * unit_vector]
 
-    return [x, y, z, vx, vy, vz]
+    return [x, y, z, vx, vy, vz, m, q]
+
+
 
 
 # Testing code - only runs when this file is executed directly
 if __name__ == "__main__":
-    input_test = stochastic_initial_conditions(m, T, y_min, y_max, z_length)
+    input_test = stochastic_initial_conditions(T, y_min, y_max, z_length, [("X",1,-1,6), ("Y",2,1,1)])
     print(input_test)

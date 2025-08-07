@@ -14,7 +14,22 @@ from scipy.integrate import solve_ivp
 
 # Constants
 G = 6.6743e-11 # Universal Gravitational Constant
-G = G/1e9 
+
+def SSCPSVarInput(G_i):
+    """
+    Set global parameters for solver code.
+    Called by StochasticInputRK45Solver.py to pass simulation parameters.
+
+    SSCPSVarInput(G_i)
+
+    Inputs:
+    G_i         universal gravitational constant [Nm^2/kg^2]       
+
+    Outputs:
+    None (sets global variables)
+    """
+    global G
+    G = G_i
 
 def calculate_omega(radius, gravity):
     """
@@ -40,7 +55,7 @@ def calculate_solar_gravity(r, solar_mu):
     """
     Compute the gravitational acceleration due to a central body.
 
-    F = -G·M·m/r² in direction of r
+    F = -G·M·m/r² direction of r
     a = -G·M/r² · r̂ = -μ · r̂/r²
 
     Parameters:
@@ -75,9 +90,9 @@ def equations_of_motion_rotating(t, state, omega, solar_mu=None):
     solar_mu: Solar gravity parameter (None to disable)
 
     Returns:
-    Derivatives of state vector [dx/dt, dy/dt, dz/dt, dvx/dt, dvy/dt, dvz/dt]
+    Derivatives of state vector [dx/dt, dy/dt, dz/dt, dvx/dt, dvy/dt, dvz/dt, dq/dt, dm/dt]
     """
-    r, v = state[:3], state[3:]
+    r, v = state[:3], state[3:6]
 
     # Position derivatives are simply the velocities
     dr_dt = v
@@ -99,8 +114,9 @@ def equations_of_motion_rotating(t, state, omega, solar_mu=None):
         solar_acceleration = calculate_solar_gravity(r, solar_mu)
         dv_dt += solar_acceleration
 
-    # Return derivatives [dx/dt, dy/dt, dz/dt, dvx/dt, dvy/dt, dvz/dt]
-    return np.concatenate((dr_dt, dv_dt))
+    # Return derivatives [dx/dt, dy/dt, dz/dt, dvx/dt, dvy/dt, dvz/dt, dq/dt, dm/dt]
+    derivs = np.concatenate((dr_dt,dv_dt, [0,0]))
+    return derivs
 
 """
 Implement gravity from 3rd bodies (planets and other stars) as a function that outputs gravitational acceleration, and inputs a structure containing a list of third body positions
@@ -121,6 +137,11 @@ def inertial_to_rotating(i_position, i_velocity, omega, theta):
     tuple: (r_position, r_velocity) in rotating frame
     """
     # For clockwise rotation (negative omega), the rotation matrix is:
+    print("Theta: ", theta)
+    theta = theta[0]
+    omega = omega[0]
+    print("Theta: ", theta)
+
     R_i2r = np.array([
         [np.cos(theta),  np.sin(theta), 0],
         [-np.sin(theta), np.cos(theta), 0],
@@ -195,9 +216,9 @@ def save_fig(i_position, i_velocity, omega, mass, rw_position, N):
     print(forces)
     print(angles)
 
-    
 
 save_fig([[2e8, 0., 0.]], [[0., 0., 0.]], 1e-6, [1e13], [149597871, 0., 0.], 6)
+
 def compute_motion(initial_position, initial_velocity, radius, gravity, t_max, dt, solar_mu=None):
     """
     Computes particle motion in the rotating frame using RK45 and returns the final state.
@@ -227,13 +248,12 @@ def compute_motion(initial_position, initial_velocity, radius, gravity, t_max, d
     omega            = calculate_omega(radius, gravity)
 
     # Create initial state vector [x, y, z, vx, vy, vz]
-    initial_state    = np.concatenate((initial_position, initial_velocity))
+    initial_state    = np.concatenate((initial_position, initial_velocity, [0,0]))
 
     t_span  = (0, t_max)
     t_eval  = np.arange(0, t_max + dt / 2, dt)
 
     # Solve the equations of motion using RK45
-
     solution = solve_ivp(
         equations_of_motion_rotating,
         t_span,
@@ -246,7 +266,32 @@ def compute_motion(initial_position, initial_velocity, radius, gravity, t_max, d
     ) 
     # Extract the final state
     final_position = solution.y[:3, -1]
-    final_velocity = solution.y[3:, -1]
+    final_velocity = solution.y[3:7, -1]
 
     # Return the final position, final velocity, and the full solution
     return final_position.tolist(), final_velocity.tolist(), solution
+
+
+def calculate_acceleration_from_lorentz_force(particle_charge: float, particle_velocity,particle_mass:float,magnetic_field, electric_field):
+    """
+    Finds the acceleration a particle expiriences under electric and magnetic forces
+
+    Parameters:
+    particle_charge: charge of the particle in coulombs (C)
+    particle_velocity: 3D vector representing the particle's current velocity (m/s)
+    particle_mass: mass of the particle (kg)
+    magnetic_field: 3D vector representing the B field expirienced by the particle at a particular time and place (N/C)
+    electric_field: 3D vecotr representing the E field expirienced by the particle at a particular time and place (T = N*s/C/m)
+
+    Returns:
+    acceleration: 3D vector representing how the lorenz force affects the particle (m/s^2)
+    """
+    Q = particle_charge
+    V = particle_velocity
+    M = particle_mass
+    B = magnetic_field
+    E = electric_field
+    force = Q * (E+np.cross(V,B))
+    acceleration = force/M
+    return acceleration
+

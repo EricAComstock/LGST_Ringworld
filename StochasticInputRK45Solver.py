@@ -11,15 +11,18 @@ import pandas as pd
 import os
 import matplotlib.pyplot as plt
 from datetime import datetime
+import traceback
 
 # Path operations
 from SolverSharedCodePlusSolar import compute_motion, SSCPSVarInput
 from StochasticInput import stochastic_initial_conditions, SIVarInput
 from TrajectoryClassification import classify_trajectory, TCVarInput
+from LeakRate import LRVarInput
+
 
 
 def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100,
-         save_results=True, show_plots=False, find_leak_rate=True):
+         save_results=True, show_plots=False, find_leak_rate=True, comp_list = None):
     """
     Main simulation function for particle trajectory analysis.
 
@@ -36,6 +39,7 @@ def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100,
     save_results    Whether to save results to Excel [bool]
     show_plots      Whether to display trajectory plots [bool]
     find_leak_rate  Whether to calculate leak rate [bool]
+    comp_list       Composition of the atmosphere [list of tuples] (Name, mass, charge, number density) [String, kg, C, n/m^3]
 
     Outputs:
     results  DataFrame containing all particle simulation results
@@ -65,9 +69,9 @@ def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100,
             print(str(percent) + "% percent done")
 
         # Generate initial conditions
-        initial_state = stochastic_initial_conditions(m, T, y_min, y_max, z_length)
-        initial_position = initial_state[:3]
-        initial_velocity = initial_state[3:]
+        initial_state = stochastic_initial_conditions(T, y_min, y_max, z_length, comp_list)
+        initial_position = initial_state[0:3]
+        initial_velocity = initial_state[4:7]
 
         try:
             # Compute trajectory
@@ -115,6 +119,7 @@ def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100,
 
         except Exception as e:
             print(f"Error processing particle {i + 1}: {e}")
+            traceback.print_exc()
 
     # Create results DataFrame
     df = pd.DataFrame(all_data)
@@ -185,15 +190,16 @@ if __name__ == "__main__":
     # Simulation parameters
     t_max = 100  # Total simulation time [s]
     dt = 0.1  # Time step [s]
-    num_particles = 50000  # Number of particles to simulate
+    num_particles = 100  # Number of particles to simulate
 
     # Physical parameters - modify gravity for different simulations
-    g = 9.81  # 1.0g - Standard gravity [m/s²]
+    g = 9.81                     # 1.0g - Standard gravity [m/s²]
     # g = 19.62                  # 2.0g - Double gravity [m/s²]
     # g = 4.905                  # 0.5g - Half gravity [m/s²]
     # g = 14.715                 # 1.5g [m/s²]
     # g = 2.4525                 # 0.25g [m/s²]
     # g = 29.43                  # 3.0g [m/s²]
+    G = 6.6743e-11               # Univeral gravitational constant [m^3/kg/s^2]
 
     # Atmospheric parameters
     T = 289  # Temperature [K]
@@ -211,22 +217,24 @@ if __name__ == "__main__":
     y_min = alpha - 10000  # Min spawn height [m]
     y_max = alpha  # Max spawn height [m]
 
-    # Import LeakRate parameter setter
-    from LeakRate import LRVarInput
+    #atmospheric composition
+    diatomic_oxygen = ("O2", 2.6566962e-26 * 2, 0,100)  #diatomic oxygen
+    comp_list = [diatomic_oxygen]                       #collection of all species at desired altitude
 
     # Initialize all modules with parameters
-    SSCPSVarInput(g)
+    SSCPSVarInput(G)
     SIVarInput(T, m, y_min, y_max, z_length, y_floor)
     TCVarInput(z_length, beta, y_floor, alpha, y_min, y_max)
     LRVarInput(P_0, K_b, T, m, g, n_0, d)
 
     # Run simulation
     results = main(
-        radius=y_min,  # Use y_min as radius (1 AU)
-        gravity=g,  # Selected gravity value
+        radius=y_min,                   # Use y_min as radius (1 AU)
+        gravity=g,                      # Selected gravity value
         t_max=t_max,
         dt=dt,
-        is_rotating=False,  # Solar gravity disabled
+        is_rotating=False,              # Solar gravity disabled
         num_particles=num_particles,
-        find_leak_rate=True  # Calculate atmospheric lifetime
+        find_leak_rate=True,            # Calculate atmospheric lifetime
+        comp_list=comp_list
     )

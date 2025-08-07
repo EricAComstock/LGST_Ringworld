@@ -185,7 +185,7 @@ def compute_gravity(i_position, i_velocity, omega, theta, mass, rw_position):
 
     return acceleration_ringworld
 
-def save_fig(i_position, i_velocity, omega, mass, rw_position):
+def save_fig(i_position, i_velocity, omega, mass, rw_position, N):
     """
     Calculates gravitational acceleration of the Ringworld under influence of third-body objects.
 
@@ -200,13 +200,24 @@ def save_fig(i_position, i_velocity, omega, mass, rw_position):
     fig.png (plot): Plot of gravity norm vs. angle for many angles
     """
     plt.figure()
-    angles = [0, np.pi/6, 2*np.pi/6, 3*np.pi/6, 4*np.pi/6, 5*np.pi/6, 6*np.pi/6, 7*np.pi/6, 8*np.pi/6, 9*np.pi/6, 10*np.pi/6, 11*np.pi/6]
+    normal = []
+    tangential = []
+    forces = []
+    angles = []
+    for n in range(N):
+        angles.append(n*2*np.pi/N)
     for theta in angles:
         acceleration_ringworld = compute_gravity(i_position, i_velocity, omega, theta, mass, rw_position)
-        gravity_norm = np.linalg.norm(acceleration_ringworld)
-        plt.plot(theta, gravity_norm)
-        plt.savefig('fig.png')
-    
+        normal.append(acceleration_ringworld[0])
+        tangential.append(acceleration_ringworld[1])
+        forces.append(np.linalg.norm(acceleration_ringworld))
+    print(normal)
+    print(tangential)
+    print(forces)
+    print(angles)
+
+
+save_fig([[2e8, 0., 0.]], [[0., 0., 0.]], 1e-6, [1e13], [149597871, 0., 0.], 6)
 
 def compute_motion(initial_position, initial_velocity, radius, gravity, t_max, dt, solar_mu=None):
     """

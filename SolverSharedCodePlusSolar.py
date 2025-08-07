@@ -258,9 +258,6 @@ def compute_motion(initial_position, initial_velocity, radius, gravity, t_max, d
     final_velocity = solution.y[3:7, -1]
 
     # Return the final position, final velocity, and the full solution
-    print("fp:", solution.y[0:3, -1])
-    print("fv:", solution.y[3:6, -1])
-    print("other:", solution.y[6:, -1])
     return final_position.tolist(), final_velocity.tolist(), solution
 
 

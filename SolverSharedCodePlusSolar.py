@@ -13,9 +13,23 @@ import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
 
 # Constants
-g = 6.6743e-11 # Universal Gravitational Constant
-g = g/1e9 
-print(g)
+G = 6.6743e-11 # Universal Gravitational Constant
+
+def SSCPSVarInput(G_i):
+    """
+    Set global parameters for solver code.
+    Called by StochasticInputRK45Solver.py to pass simulation parameters.
+
+    SSCPSVarInput(G_i)
+
+    Inputs:
+    G_i         universal gravitational constant [Nm^2/kg^2]       
+
+    Outputs:
+    None (sets global variables)
+    """
+    global G
+    G = G_i
 
 def calculate_omega(radius, gravity):
     """
@@ -41,7 +55,7 @@ def calculate_solar_gravity(r, solar_mu):
     """
     Compute the gravitational acceleration due to a central body.
 
-    F = -G·M·m/r² in direction of r
+    F = -G·M·m/r² direction of r
     a = -G·M/r² · r̂ = -μ · r̂/r²
 
     Parameters:
@@ -78,7 +92,7 @@ def equations_of_motion_rotating(t, state, omega, solar_mu=None):
     Returns:
     Derivatives of state vector [dx/dt, dy/dt, dz/dt, dvx/dt, dvy/dt, dvz/dt, dq/dt, dm/dt]
     """
-    r, v = state[:3], state[3:]
+    r, v = state[:3], state[3:6]
 
     # Position derivatives are simply the velocities
     dr_dt = v
@@ -101,7 +115,8 @@ def equations_of_motion_rotating(t, state, omega, solar_mu=None):
         dv_dt += solar_acceleration
 
     # Return derivatives [dx/dt, dy/dt, dz/dt, dvx/dt, dvy/dt, dvz/dt, dq/dt, dm/dt]
-    return np.concatenate((dr_dt, dv_dt, 0, 0))
+    derivs = np.concatenate((dr_dt,dv_dt, [0,0]))
+    return derivs
 
 """
 Implement gravity from 3rd bodies (planets and other stars) as a function that outputs gravitational acceleration, and inputs a structure containing a list of third body positions
@@ -166,7 +181,7 @@ def compute_gravity(i_position, i_velocity, omega, theta, mass, rw_position):
         r_position = inertial_to_rotating(i_position[i], i_velocity[i], omega, theta)[0]
 
         # Add to acceleration vector for Ringworld
-        acceleration_ringworld += (g * mass[i] / (np.linalg.norm(r_position - rw_position) ** 3) * (r_position - rw_position) - g * mass[i] / (np.linalg.norm(r_position) ** 3) * r_position)
+        acceleration_ringworld += (G * mass[i] / (np.linalg.norm(r_position - rw_position) ** 3) * (r_position - rw_position) - G * mass[i] / (np.linalg.norm(r_position) ** 3) * r_position)
 
     return acceleration_ringworld
 
@@ -193,7 +208,6 @@ def save_fig(i_position, i_velocity, omega, mass, rw_position):
         plt.savefig('fig.png')
     
 
-compute_gravity([[2e8, 0., 0.]], [[0., 0., 0.]], [1e-6], [0.], [1e13], [1e8, 1e8, 0.])
 def compute_motion(initial_position, initial_velocity, radius, gravity, t_max, dt, solar_mu=None):
     """
     Computes particle motion in the rotating frame using RK45 and returns the final state.
@@ -223,13 +237,12 @@ def compute_motion(initial_position, initial_velocity, radius, gravity, t_max, d
     omega            = calculate_omega(radius, gravity)
 
     # Create initial state vector [x, y, z, vx, vy, vz]
-    initial_state    = np.concatenate((initial_position, initial_velocity))
+    initial_state    = np.concatenate((initial_position, initial_velocity, [0,0]))
 
     t_span  = (0, t_max)
     t_eval  = np.arange(0, t_max + dt / 2, dt)
 
     # Solve the equations of motion using RK45
-
     solution = solve_ivp(
         equations_of_motion_rotating,
         t_span,
@@ -242,9 +255,12 @@ def compute_motion(initial_position, initial_velocity, radius, gravity, t_max, d
     ) 
     # Extract the final state
     final_position = solution.y[:3, -1]
-    final_velocity = solution.y[3:, -1]
+    final_velocity = solution.y[3:7, -1]
 
     # Return the final position, final velocity, and the full solution
+    print("fp:", solution.y[0:3, -1])
+    print("fv:", solution.y[3:6, -1])
+    print("other:", solution.y[6:, -1])
     return final_position.tolist(), final_velocity.tolist(), solution
 
 

@@ -65,13 +65,15 @@ def stochastic_initial_conditions(T, y_min, y_max, z_length, comp_list = None):
     list: [x, y, z, vx, vy, vz, m, q] initial position and velocity components, and particle mass and charge
     """
     # Generate random position
-    z_min = -int(z_length / 2)  # Left boundary
-    z_max = int(z_length / 2)  # Right boundary
-    z = random.randint(z_min, z_max)  # Random z position
-    y = random.randint(y_min, y_max)  # Random altitude
-    x = 0  # Start at x = 0
+    z_min = -int(z_length / 2)              # Left boundary
+    z_max = int(z_length / 2)               # Right boundary
+    z = random.randint(z_min, z_max)        # Random z position
+    y = random.randint(y_min, y_max)        # Random altitude
+    x = 0                                   # Start at x = 0
 
-    
+
+
+    #set mass and charge
     total_density = 0
     for particle in comp_list: total_density += particle[3]               #add up all particle densities
     weights = []
@@ -81,6 +83,9 @@ def stochastic_initial_conditions(T, y_min, y_max, z_length, comp_list = None):
     m = selected_particle[1]                                              #get mass of selected paricle
     q = selected_particle[2]                                              #get charge of selected paricle
 
+
+
+    #get velocity
     random_vector = np.random.normal(size=3)                       # Generate random 3D vector
     unit_vector   = random_vector / np.linalg.norm(random_vector)  # Normalize to unit length
 
@@ -97,6 +102,8 @@ def stochastic_initial_conditions(T, y_min, y_max, z_length, comp_list = None):
     [vx, vy, vz] = [float(v) for v in velocity_magnitude * unit_vector]
 
     return [x, y, z, vx, vy, vz, m, q]
+
+
 
 
 # Testing code - only runs when this file is executed directly

@@ -4,8 +4,8 @@ tester-chambers.py
 Tests Lorentz force in SSCPS.py
 
 Version: 1.0
-Author: Matthew Mullis
-Date: April 29, 2025
+Author: James Barritt Chambers
+Date: July 30, 2025
 """
 
 import numpy as np

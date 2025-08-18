@@ -217,7 +217,7 @@ def save_fig(i_position, i_velocity, omega, mass, rw_position, N):
     print(angles)
 
 
-save_fig([[2e8, 0., 0.]], [[0., 0., 0.]], 1e-6, [1e13], [149597871, 0., 0.], 6)
+#save_fig([[2e8, 0., 0.]], [[0., 0., 0.]], 1e-6, [1e13], [149597871, 0., 0.], 6)
 
 def compute_motion(initial_position, initial_velocity, radius, gravity, t_max, dt, solar_mu=None):
     """
@@ -294,4 +294,5 @@ def calculate_acceleration_from_lorentz_force(particle_charge: float, particle_v
     force = Q * (E+np.cross(V,B))
     acceleration = force/M
     return acceleration
+
 

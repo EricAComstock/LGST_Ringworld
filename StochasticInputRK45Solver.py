@@ -223,7 +223,7 @@ if __name__ == "__main__":
 
     # Initialize all modules with parameters
     SSCPSVarInput(G)
-    SIVarInput(T, m, y_min, y_max, z_length, y_floor)
+    SIVarInput(T, y_min, y_max, z_length, y_floor)
     TCVarInput(z_length, beta, y_floor, alpha, y_min, y_max)
     LRVarInput(P_0, K_b, T, m, g, n_0, d)
 

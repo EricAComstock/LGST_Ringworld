@@ -14,23 +14,21 @@ import random
 
 # Default parameters
 T = 289  # Temperature [K]
-m = 5.31e-26  # Mass of oxygen molecule [kg]
 y_min = 149597870691 + 218 * 1000  # Minimum spawn altitude [m]
 y_max = 149597870691 + 218 * 1000 + 10 * 1000  # Maximum spawn altitude [m]
 z_length = 10000 * 1000  # Total z-length [m]
 y_floor = 149597870691  # Ringworld floor (1 AU) [m]
 
 
-def SIVarInput(T_i, m_i, y_min_i, y_max_i, z_length_i, y_floor_i):
+def SIVarInput(T_i, y_min_i, y_max_i, z_length_i, y_floor_i):
     """
     Set global parameters for stochastic input generation.
     Called by StochasticInputRK45Solver.py to pass simulation parameters.
 
-    SIVarInput(T_i, m_i, y_min_i, y_max_i, z_length_i, y_floor_i)
+    SIVarInput(T_i, y_min_i, y_max_i, z_length_i, y_floor_i)
 
     Inputs:
     T_i         Temperature [K]
-    m_i         Particle mass [kg]
     y_min_i     Minimum y-coordinate for particle spawning [m]
     y_max_i     Maximum y-coordinate for particle spawning [m]
     z_length_i  Total z-dimension length [m]
@@ -39,9 +37,8 @@ def SIVarInput(T_i, m_i, y_min_i, y_max_i, z_length_i, y_floor_i):
     Outputs:
     None (sets global variables)
     """
-    global T, m, y_min, y_max, z_length, y_floor
+    global T, y_min, y_max, z_length, y_floor
     T = T_i  # Temperature
-    m = m_i  # Particle mass
     y_min = y_min_i  # Minimum spawn altitude
     y_max = y_max_i  # Maximum spawn altitude
     z_length = z_length_i  # Ringworld width
@@ -109,4 +106,5 @@ def stochastic_initial_conditions(T, y_min, y_max, z_length, comp_list = None):
 # Testing code - only runs when this file is executed directly
 if __name__ == "__main__":
     input_test = stochastic_initial_conditions(T, y_min, y_max, z_length, [("X",1,-1,6), ("Y",2,1,1)])
+
     print(input_test)

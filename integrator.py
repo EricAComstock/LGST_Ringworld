@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 g = 6.6743e-11 # Universal Gravitational Constant
-g = g/1e9 
 
 def inertial_to_rotating(i_position, i_velocity, omega, theta):
     """
@@ -57,7 +56,8 @@ def compute_gravity(i_position, i_velocity, omega, theta, mass, rw_position):
         r_position = inertial_to_rotating(i_position[i], i_velocity[i], omega, theta)[0]
 
         # Add to acceleration vector for Ringworld
-        acceleration_ringworld += (g * mass[i] / (np.linalg.norm(r_position - rw_position) ** 3) * (r_position - rw_position) - g * mass[i] / (np.linalg.norm(r_position) ** 3) * r_position)
+        acceleration_ringworld += (g * mass[i] / (np.linalg.norm(r_position - rw_position) ** 3) * (r_position - rw_position)) - (g * mass[i] / (np.linalg.norm(r_position) ** 3) * r_position)
+
 
     return acceleration_ringworld
 
@@ -195,11 +195,10 @@ def plot_velocity_results(angles, y_force, velocity_map, radius, ringworld_veloc
 
 
 if __name__ == "__main__":
-    angles = np.array(save_fig([[2e8, 0., 0.]], [[0., 0., 0.]], 1e-6, [1e13], [149597871, 0., 0.], 1000)[0])
-    radius = 1000.0  
-    ringworld_velocity = 1000
-    
-    y_force = np.array(save_fig([[2e8, 0., 0.]], [[0., 0., 0.]], 1e-6, [1e13], [149597871, 0., 0.], 1000)[1])
+    angles = np.array(save_fig([[2e11, 0., 0.]], [[0., 0., 0.]], 1e-3, [1e16], [149597871000, 0., 0.], 1000000)[0])
+    radius = 149597871000
+    ringworld_velocity = np.sqrt(149597871000*9.81)
+    y_force = np.array(save_fig([[2e11, 0., 0.]], [[0., 0., 0.]], 1e-3, [1e16], [149597871000, 0., 0.], 1000000)[1])
     # Integrate to get velocity map
     velocity_map, arc_lengths = integrate_ringworld_velocity(y_force, angles, radius, ringworld_velocity)
     

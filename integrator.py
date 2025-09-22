@@ -90,7 +90,7 @@ def save_fig(i_position, i_velocity, omega, mass, rw_position, N):
     plt.figure()
     plt.plot(angles, tangential)
     plt.savefig("ringworld forces")
-    return [angles, normal]
+    return [angles, tangential]
 
 from scipy.integrate import cumulative_trapezoid as cumtrapz
 
@@ -195,10 +195,10 @@ def plot_velocity_results(angles, y_force, velocity_map, radius, ringworld_veloc
 
 
 if __name__ == "__main__":
-    angles = np.array(save_fig([[2e11, 0., 0.]], [[0., 0., 0.]], 1e-3, [1e16], [149597871000, 0., 0.], 1000000)[0])
+    angles = np.array(save_fig([[2e11, 0., 0.]], [[0., 0., 0.]], 1e-3, [1e16], [149597871000, 0., 0.], 1000)[0])
     radius = 149597871000
     ringworld_velocity = np.sqrt(149597871000*9.81)
-    y_force = np.array(save_fig([[2e11, 0., 0.]], [[0., 0., 0.]], 1e-3, [1e16], [149597871000, 0., 0.], 1000000)[1])
+    y_force = np.array(save_fig([[2e11, 0., 0.]], [[0., 0., 0.]], 1e-3, [1e16], [149597871000, 0., 0.], 1000)[1])
     # Integrate to get velocity map
     velocity_map, arc_lengths = integrate_ringworld_velocity(y_force, angles, radius, ringworld_velocity)
     

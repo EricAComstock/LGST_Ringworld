@@ -1,3 +1,7 @@
+"""
+integrator.py
+V1.0, James Stewart, September 24, 2025
+"""
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -88,8 +92,6 @@ def save_fig(i_position, i_velocity, omega, mass, rw_position, N):
         tangential.append(acceleration_ringworld[1])
         forces.append(np.linalg.norm(acceleration_ringworld))
     plt.figure()
-    plt.plot(angles, tangential)
-    plt.savefig("ringworld forces")
     return [angles, tangential]
 
 from scipy.integrate import cumulative_trapezoid as cumtrapz

@@ -1,8 +1,13 @@
 """
-TrajectoryClassification_numpy.py
-Optimized version of TrajectoryClassification.py using NumPy for better performance.
+File: TrajectoryClassification_numpy.py
+Author: LGST Team
+Date: 2025-09-22
+Description: Optimized version of TrajectoryClassification.py using NumPy for better performance.
+             Implements trajectory classification for ringworld particle simulations.
 
-V1.1, Optimized version, September 2025
+Version History:
+    v1.0 (2025-09-15): Initial implementation
+    v1.1 (2025-09-22): Optimized with NumPy for better performance
 """
 
 import numpy as np
@@ -17,8 +22,8 @@ alpha = y_floor - (218 * 1000)  # Atmosphere boundary [m]
 y_min = alpha - 10000  # Minimum spawn height [m]
 y_max = alpha  # Maximum spawn height [m]
 
-def TCVarInput(z_length_i: float, beta_i: float, y_floor_i: float, 
-              alpha_i: float, y_min_i: float, y_max_i: float) -> None:
+def TCVarInput(z_length_i: float, beta_i: float, y_floor_i: float,
+               alpha_i: float, y_min_i: float, y_max_i: float) -> None:
     """
     Set global parameters for trajectory classification.
     Called by StochasticInputRK45Solver.py to pass boundary parameters.
@@ -39,7 +44,8 @@ def TCVarInput(z_length_i: float, beta_i: float, y_floor_i: float,
     y_min = y_min_i
     y_max = y_max_i
 
-def _process_trajectory_numpy(trajectories: np.ndarray, alpha: float, beta: float, y_floor: float) -> Tuple[int, str]:
+def _process_trajectory_numpy(trajectories: np.ndarray, alpha: float, beta: float,
+                            y_floor: float) -> Tuple[int, str]:
     """
     Optimized trajectory processing using NumPy while maintaining exact sequential logic.
     
@@ -56,7 +62,7 @@ def _process_trajectory_numpy(trajectories: np.ndarray, alpha: float, beta: floa
     if hasattr(trajectories, 'values'):
         traj = trajectories.values[:, :3]  # Take first 3 columns if more exist
     else:
-        traj = np.asarray(trajectories)[:, :3]  # Ensure it's a numpy array
+        traj = np.asarray(trajectories)[:, :3]  # Ensure numpy array
     
     # Pre-compute all positions and distances for better performance
     x = traj[:, 0]
@@ -66,10 +72,8 @@ def _process_trajectory_numpy(trajectories: np.ndarray, alpha: float, beta: floa
     z_abs = np.abs(z)  # Pre-compute absolute z values
     
     # Vectorized beta crossing counting (preserves sequential logic)
-    # Count crossings from inside to outside beta
-    crossings_out = np.sum((z_abs[1:] >= beta) & (z_abs[:-1] < beta))
-    # Count crossings from outside to inside beta  
-    crossings_in = np.sum((z_abs[1:] <= beta) & (z_abs[:-1] > beta))
+    crossings_out = np.sum((z_abs[1:] >= beta) & (z_abs[:-1] < beta))  # Inside to outside
+    crossings_in  = np.sum((z_abs[1:] <= beta) & (z_abs[:-1] > beta))  # Outside to inside
     beta_crossings = int(crossings_out + crossings_in)
     
     # Initialize classification flags (matching original implementation exactly)
@@ -107,10 +111,10 @@ def _process_trajectory_numpy(trajectories: np.ndarray, alpha: float, beta: floa
         final_z_abs = z_abs[-1]
         final_r = r[-1]
         
-        if final_z_abs <= beta and final_r > alpha:  # Inside bounds, above atmosphere
+        if final_z_abs <= beta and final_r < alpha:  # Inside bounds, below atmosphere
             # resimulate = True (we can skip this variable and go directly to result)
             result = 'resimulate'
-        elif final_z_abs <= beta and final_r < alpha:  # Inside bounds, below atmosphere
+        elif final_z_abs <= beta and final_r > alpha:  # Inside bounds, above atmosphere
             result = 'recaptured'
         else:  # Outside lateral bounds
             result = 'escaped'
@@ -123,7 +127,7 @@ def _process_trajectory_numpy(trajectories: np.ndarray, alpha: float, beta: floa
     
     return beta_crossings, result
 
-def classify_trajectory(alpha: float, beta: float, y_floor: float, 
+def classify_trajectory(alpha: float, beta: float, y_floor: float,
                        trajectories: Union[pd.DataFrame, np.ndarray]) -> Tuple[int, str]:
     """
     Classifies particle trajectory based on path and final position.
@@ -167,7 +171,7 @@ def test_classification():
     # Test 1: Simple trajectory that escapes
     traj, expected = generate_test_trajectory()
     
-    # Print some debug info about the trajectory
+    # Print trajectory information for debugging
     print("\nTrajectory info:")
     print(f"Shape: {traj.shape}")
     print(f"First 5 points:\n{traj[:5]}")
@@ -228,15 +232,14 @@ def test_classification():
     traj_resimulate[:, 2] = 0  # Keep within beta
     _, result = classify_trajectory(alpha, beta, y_floor, traj_resimulate)
     print(f"Test 3 - Resimulate case: {result}")
-    
+
     print("\nAll tests passed!")
     return traj, result
 
-# Testing code - only runs when this file is executed directly
 if __name__ == "__main__":
     # Run the test suite
     test_trajectory, _ = test_classification()
-    
+
     # Test with a pandas DataFrame to ensure compatibility
     try:
         import pandas as pd

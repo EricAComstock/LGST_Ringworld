@@ -1,6 +1,6 @@
 # Ringworld Particle Dynamics Simulation
-**Version 1.0**  
-**Last Updated: April 29, 2025**
+**Version 1.1**  
+**Last Updated: August 25, 2025**
 
 ===============================================================================
 
@@ -35,7 +35,7 @@ pseudoforces dominate the particle kinematics.
 **Features**:
 - Position vectors within defined spatial domains
 - Velocity vectors from Maxwell-Boltzmann distribution
-- Configurable molecular properties
+- Configurable molecular properties (species, wieght, charge)
 
 ### StochasticInputRK45Solver.py
 **Purpose**: Primary execution module  
@@ -52,6 +52,7 @@ pseudoforces dominate the particle kinematics.
 - Runge-Kutta 45 numerical integration
 - Coriolis and centrifugal force calculations
 - Optional heliocentric gravitational field
+- Lorentz force calculation
 
 ### TrajectoryClassification.py
 **Purpose**: Analyzes trajectories against boundary conditions  
@@ -74,6 +75,21 @@ pseudoforces dominate the particle kinematics.
 - Reference frame transformations
 - Analytical vs. numerical solution comparison
 - Error quantification and validation
+
+### tester-chambers.py ###
+**Purpose**: Additional Verification module
+**Features**:
+- Preliminary testing of Electromagnetic effects in the ringworld via Lorentz force
+
+### Validation_error_plot.py ###
+**Purpose**: Error Visualization
+**Features**:
+- Plot showing error of integration method over time
+
+### Ringworld_gravity.py ###
+**Purpose**: Visualizes gravity caused by ringworld
+**Features**:
+ - Heatmap of RW gravity
 
 ===============================================================================
 
@@ -109,14 +125,15 @@ pseudoforces dominate the particle kinematics.
    - `t_max`: Simulation duration
    - `dt`: Time step size
    - `num_particles`: Number of particles to simulate
+   - `comp_list`: Composition of relivant atmosphere
 
 ### Atmospheric Leak Rate Analysis
 
 The leak rate analysis is integrated into the main simulation and runs
 automatically after particle processing completes.
 
-### Verification Tool
-
+### Verification Tools ###
+**Mullis**
 **Run command**:
 ```
 python tester-mullis-NEW.py
@@ -134,6 +151,20 @@ python tester-mullis-NEW.py
 - Error metrics showing solver accuracy
 - Angular velocity and rotation period information
 
+**Chambers**
+**Run command**:
+```
+python tester-chambers.py
+```
+
+**Inputs**:
+ - E & B fields as vectors or vector functions at a location/time
+ - Particle velocity
+ - Mass & Charge
+
+**Outputs**:
+ - Lorentz acceleration as a 3D vector
+
 ===============================================================================
 
 ## Configuration Parameters
@@ -149,6 +180,8 @@ python tester-mullis-NEW.py
 | gravity | Gravitational acceleration | m/s² |
 | save_results | Data persistence control | bool |
 | show_plots | Visualization toggle | bool |
+| comp_list | Atmoshere Composition | [(String,kg,C,n/m^3)] |
+| find_leak_rate | Use Leak Rate code toggle | bool |
 
 ### TrajectoryClassification.py
 | Parameter | Description | Units |
@@ -164,7 +197,6 @@ python tester-mullis-NEW.py
 | Parameter | Description | Units |
 |-----------|-------------|-------|
 | T | Temperature | K |
-| m | Particle mass | kg |
 | k_B | Boltzmann constant | J/K |
 | scale | Velocity scale parameter | m/s |
 
@@ -207,6 +239,8 @@ python tester-mullis-NEW.py
    - Molecular Density: n = n₀·e^(-alt/h_s)
    - Mass Flux: φ_m = n·m·v_thermal·f_escape
    - Atmospheric Lifetime: t_life = (P₀/g)/φ_m (years)
+  
+6. **Lorentz Force**: F = q(E + v × B)
 
 ===============================================================================
 

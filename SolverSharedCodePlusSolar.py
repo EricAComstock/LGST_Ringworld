@@ -14,6 +14,7 @@ from scipy.integrate import solve_ivp
 
 # Constants
 G = 6.6743e-11 # Universal Gravitational Constant
+radius = 0     # Radius of RW
 
 def SSCPSVarInput(G_i):
     """

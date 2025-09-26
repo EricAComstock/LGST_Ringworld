@@ -39,7 +39,7 @@ def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100,
     save_results    Whether to save results to Excel [bool]
     show_plots      Whether to display trajectory plots [bool]
     find_leak_rate  Whether to calculate leak rate [bool]
-    comp_list       Composition of the atmosphere [list of tuples] (Name, mass, charge, number density) [String, kg, C, n/m^3]
+    comp_list       Composition of the atmosphere [list of tuples] (Name, mass, charge, number density) [String, kg, C, n/cm^3]
 
     Outputs:
     results  DataFrame containing all particle simulation results
@@ -220,6 +220,9 @@ if __name__ == "__main__":
     #atmospheric composition
     diatomic_oxygen = ("O2", 2.6566962e-26 * 2, 0,100)  #diatomic oxygen
     comp_list = [diatomic_oxygen]                       #collection of all species at desired altitude
+    #Venus at 600km
+    #Earth at 600km
+    #Earth w/ Venus properties at 600km
 
     # Initialize all modules with parameters
     SSCPSVarInput(G)

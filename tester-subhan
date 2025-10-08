@@ -1,0 +1,16 @@
+"""
+tester-subhan.py
+
+Tests Magnetic Fields
+
+Version: 1.0
+Author: Subhan Ali Arshad
+Date: October 8, 2025
+"""
+
+import random
+random_radius = random.randint(1, 100)
+
+def radial_magnetic_field(random_radius, r_0=1.0, B_0=2.5e-9):
+    return B_0*(r_0/random_radius)^2
+print({radial_magnetic_field})

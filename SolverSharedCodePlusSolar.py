@@ -15,7 +15,7 @@ from scipy.integrate import solve_ivp
 # Constants
 G = 6.6743e-11 # Universal Gravitational Constant
 
-def SSCPSVarInput(G_i):
+def SSCPSVarInput(G_i, r_0_i, B_0_i, v_r_i):
     """
     Set global parameters for solver code.
     Called by StochasticInputRK45Solver.py to pass simulation parameters.
@@ -24,12 +24,17 @@ def SSCPSVarInput(G_i):
 
     Inputs:
     G_i         universal gravitational constant [Nm^2/kg^2]       
-
+    r_0         Distance From Earth to Sun (1AU) [m]
+    B_0         Magnetic Field of Earth [T]
+    v_r         Radial Solar Wind Speed [m/s] (Placeholder) 
     Outputs:
     None (sets global variables)
     """
-    global G
+    global G, r_0, B_0, v_r
     G = G_i
+    r_0 = r_0_i
+    B_0 = B_0_i
+    v_r = v_r_i
 
 def calculate_omega(radius, gravity):
     """
@@ -272,6 +277,25 @@ def compute_motion(initial_position, initial_velocity, radius, gravity, t_max, d
     return final_position.tolist(), final_velocity.tolist(), solution
 
 
+def calculate_magnetic_field(radius, omega):
+    """
+    Finds the interplanetary magnetic field induced by the Parker Spiral
+    This function uses the reference magnetic field for Earth (B_0),
+    the distance between the Sun and Earth (r_0) and solar wind speed (v_r)
+
+    Parameters:
+    radius: Radius of rotation (m)
+    omega: Angular velocity magnitude (rad/s) 
+
+    Returns:
+    magnetic_field: 3D vector repesenting the B field experienced by the particle at a particular time and place (T = N*s/C/m)
+    """
+    B_r = B_0 * (r_0 / radius) ** 2
+    B_phi = -omega * radius * B_r / v_r 
+    magnetic_field = np.array([B_r, 0, B_phi])
+    return magnetic_field
+
+
 def calculate_acceleration_from_lorentz_force(particle_charge: float, particle_velocity,particle_mass:float,magnetic_field, electric_field):
     """
     Finds the acceleration a particle expiriences under electric and magnetic forces
@@ -280,8 +304,8 @@ def calculate_acceleration_from_lorentz_force(particle_charge: float, particle_v
     particle_charge: charge of the particle in coulombs (C)
     particle_velocity: 3D vector representing the particle's current velocity (m/s)
     particle_mass: mass of the particle (kg)
-    magnetic_field: 3D vector representing the B field expirienced by the particle at a particular time and place (N/C)
-    electric_field: 3D vecotr representing the E field expirienced by the particle at a particular time and place (T = N*s/C/m)
+    magnetic_field: 3D vector representing the B field experienced by the particle at a particular time and place (T = N*s/C/m)
+    electric_field: 3D vecotr representing the E field experienced by the particle at a particular time and place (N/C)
 
     Returns:
     acceleration: 3D vector representing how the lorenz force affects the particle (m/s^2)

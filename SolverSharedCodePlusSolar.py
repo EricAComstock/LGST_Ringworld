@@ -267,7 +267,7 @@ def compute_motion(initial_position, initial_velocity, radius, gravity, t_max, d
     ) 
     # Extract the final state
     final_position = solution.y[:3, -1]
-    final_velocity = solution.y[3:7, -1]
+    final_velocity = solution.y[3:6, -1]
 
     # Return the final position, final velocity, and the full solution
     return final_position.tolist(), final_velocity.tolist(), solution

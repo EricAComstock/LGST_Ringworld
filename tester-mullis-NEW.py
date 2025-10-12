@@ -22,7 +22,7 @@ w = SolverSharedCodePlusSolar.calculate_omega(r, g)  # Angular velocity [rad/s]
 # Time parameters
 dt = 0.001  # Time step [s]
 t0 = 0  # Initial time [s]
-tf = 100000 + t0  # Final time [s]
+tf = 10000 + t0  # Final time [s]
 
 # Initial conditions in inertial frame
 xi = 0  # Initial x position [m]
@@ -136,12 +136,11 @@ if __name__ == "__main__":
           f"{r_rotating_initial[1]:.3f}, {r_rotating_initial[2]:.3f})")
     print(f"Initial velocity (rotating): ({v_rotating_initial[0]:.3f}, " +
           f"{v_rotating_initial[1]:.3f}, {v_rotating_initial[2]:.3f})")
-
     # Use solver to compute motion in rotating frame
+
     final_rot_position, final_rot_velocity, solution = SolverSharedCodePlusSolar.compute_motion(
         r_rotating_initial, v_rotating_initial, r, g, tf, dt, solar_mu=None
     )
-
     # Convert results to numpy arrays
     final_rot_position = np.array(final_rot_position)
     final_rot_velocity = np.array(final_rot_velocity)

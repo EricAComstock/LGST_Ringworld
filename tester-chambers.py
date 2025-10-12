@@ -11,11 +11,12 @@ Date: July 30, 2025
 import numpy as np
 import matplotlib.pyplot as plt
 
+#testing lorentz forces
 from SolverSharedCodePlusSolar import calculate_acceleration_from_lorentz_force as lorentz
 
-charge = -1
+charge = -2
 velocity = np.array([2,-1,0])
-mass = 1
+mass = 2
 B = np.array([-3,1,0])
 E = np.array([1,1,0])
 

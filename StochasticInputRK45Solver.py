@@ -71,7 +71,11 @@ def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100,
         # Generate initial conditions
         initial_state = stochastic_initial_conditions(T, y_min, y_max, z_length, comp_list)
         initial_position = initial_state[0:3]
-        initial_velocity = initial_state[4:7]
+        initial_velocity = initial_state[3:6]
+        print(initial_state[0:3])
+        print(initial_state[3:6])
+        print(initial_state[6:8])
+        print(initial_state[4:7])
 
         try:
             # Compute trajectory
@@ -218,10 +222,19 @@ if __name__ == "__main__":
     y_max = alpha  # Max spawn height [m]
 
     #atmospheric composition
-    diatomic_oxygen = ("O2", 2.6566962e-26 * 2, 0,100)  #diatomic oxygen
-    comp_list = [diatomic_oxygen]                       #collection of all species at desired altitude
-    #Venus at 600km
-    #Earth at 600km
+    electron_charge = 1.6022e-19
+    diatomic_oxygen =   ("O2", 2.6566962e-26 * 2, 0,100)  #diatomic oxygen
+
+    helium1 =           ("He+", 6.645e-27, electron_charge * 1, 794)
+    hydro1 =            ("H+", 1.67e-27, electron_charge * 1, 1995)
+    nitro1 =            ("N+", 2.335e-26, electron_charge * 1, 3981)
+    diatomic_nitrogen = ("N2", 4.67e-26, electron_charge * 0, 17783)
+    oxy1 =              ("O+", 2.657e-26, electron_charge * 1, 31623)
+    electrons =         ("e-", 9.109e-31, electron_charge * -1, 39811)
+    helium =            ("He", 6.645e-27, electron_charge * 0, 251189)
+    comp_list = [helium1,hydro1,nitro1,diatomic_nitrogen,oxy1,electrons,helium]    #collection of all species at desired altitude
+
+
     #Earth w/ Venus properties at 600km
 
     # Initialize all modules with parameters

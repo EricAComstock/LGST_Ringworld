@@ -200,8 +200,8 @@ if __name__ == "__main__":
     # g = 2.4525                 # 0.25g [m/s²]
     # g = 29.43                  # 3.0g [m/s²]
     G = 6.6743e-11               # Univeral gravitational constant [m^3/kg/s^2]
-    r_0_i = 1.496e+11             # Distance From Earth to Sun (1AU) [m]
-    B_0_i = 2.5e-9               # Magnetic Field of Earth [T]
+    r_0_i = 1.496e+11            # Distance From Earth to Sun (1AU) [m]
+    B_0_i = 6e-9                 # Solar Magnetic Field at Earth's Location [T]
     v_r_i = 400000               # Radial Solar Wind Speed [m/s] (Placeholder)      
 
     # Atmospheric parameters

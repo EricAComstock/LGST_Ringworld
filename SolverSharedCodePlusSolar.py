@@ -25,7 +25,7 @@ def SSCPSVarInput(G_i, r_0_i, B_0_i, v_r_i):
     Inputs:
     G_i         universal gravitational constant [Nm^2/kg^2]       
     r_0         Distance From Earth to Sun (1AU) [m]
-    B_0         Magnetic Field of Earth [T]
+    B_0         Solar Magnetic Field at Earth's Location [T]
     v_r         Radial Solar Wind Speed [m/s] (Placeholder) 
     Outputs:
     None (sets global variables)

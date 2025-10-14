@@ -295,6 +295,24 @@ def calculate_magnetic_field(radius, omega):
     magnetic_field = np.array([B_r, 0, B_phi])
     return magnetic_field
 
+def calculate_electric_field(magnetic_field, radius, omega):
+    """
+    Calculates the electric field from solar-wind convection, induced by the magnetic field
+    This function uses solar wind speed (v_r)
+
+    Parameters:
+    radius: Radius of rotation (m)
+    omega: Angular velocity magnitude (rad/s)
+    magnetic_field: Magnetic field vector experienced by particle (T)
+
+    Returns:
+    electric_field: 3D vector representing the E field experienced by the particle at a particular time and place (N/C)
+    """
+    v_combined = - (v_r - omega * radius)
+    v_vector = np.array([v_combined, 0, 0])
+    electric_field = np.cross(v_vector, magnetic_field)
+    return electric_field
+
 
 def calculate_acceleration_from_lorentz_force(particle_charge: float, particle_velocity,particle_mass:float,magnetic_field, electric_field):
     """
@@ -305,7 +323,7 @@ def calculate_acceleration_from_lorentz_force(particle_charge: float, particle_v
     particle_velocity: 3D vector representing the particle's current velocity (m/s)
     particle_mass: mass of the particle (kg)
     magnetic_field: 3D vector representing the B field experienced by the particle at a particular time and place (T = N*s/C/m)
-    electric_field: 3D vecotr representing the E field experienced by the particle at a particular time and place (N/C)
+    electric_field: 3D vector representing the E field experienced by the particle at a particular time and place (N/C)
 
     Returns:
     acceleration: 3D vector representing how the lorenz force affects the particle (m/s^2)

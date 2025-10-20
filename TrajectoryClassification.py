@@ -79,13 +79,13 @@ def classify_trajectory(alpha, beta, y_floor, trajectories):
         x = trajectories.iloc[i, 0]  # x-coordinate
         y = trajectories.iloc[i, 1]  # y-coordinate
         z = trajectories.iloc[i, 2]  # z-coordinate
-        r = np.sqrt(x ** 2 + y ** 2)  # Radial distance
+        r = np.sqrt(float(x) ** 2 + float(y) ** 2)  # Radial distance
 
         # Previous position
         x_prev = trajectories.iloc[i - 1, 0]  # Previous x
         y_prev = trajectories.iloc[i - 1, 1]  # Previous y
         z_prev = trajectories.iloc[i - 1, 2]  # Previous z
-        r_prev = np.sqrt(x_prev ** 2 + y_prev ** 2)  # Previous radius
+        r_prev = np.sqrt(float(x_prev) ** 2 + float(y_prev) ** 2)  # Previous radius
 
         # Check if particle entered side of ringworld
         if abs(z) >= beta and r > alpha and not recaptured and not escaped:
@@ -106,9 +106,15 @@ def classify_trajectory(alpha, beta, y_floor, trajectories):
 
     # Classify particles that didn't hit ending conditions during trajectory
     if not recaptured and not escaped:
-        if abs(z) <= beta and r < alpha:  # Inside bounds, below atmosphere
+        # Get final position with explicit float conversion to avoid overflow
+        final_x = float(trajectories.iloc[-1, 0])
+        final_y = float(trajectories.iloc[-1, 1])
+        final_z = float(trajectories.iloc[-1, 2])
+        final_r = np.sqrt(final_x ** 2 + final_y ** 2)
+        
+        if abs(final_z) <= beta and final_r < alpha:  # Inside bounds, below atmosphere
             resimulate = True
-        elif abs(z) <= beta and r > alpha:  # Inside bounds, above atmosphere
+        elif abs(final_z) <= beta and final_r > alpha:  # Inside bounds, above atmosphere
             recaptured = True
         else:  # Outside lateral bounds
             escaped = True

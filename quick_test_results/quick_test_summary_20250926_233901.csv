@@ -1,5 +1,0 @@
-run_id,timestamp,parameters,error,success
-quick_test_0001,2025-09-26T23:39:01.002173,"{'gravity': 2.743176313, 'temperature': 289, 'num_particles': 25}",unsupported operand type(s) for /: 'NoneType' and 'int',False
-quick_test_0002,2025-09-26T23:39:01.002838,"{'gravity': 2.743176313, 'temperature': 350, 'num_particles': 25}",unsupported operand type(s) for /: 'NoneType' and 'int',False
-quick_test_0003,2025-09-26T23:39:01.003384,"{'gravity': 5.0, 'temperature': 289, 'num_particles': 25}",unsupported operand type(s) for /: 'NoneType' and 'int',False
-quick_test_0004,2025-09-26T23:39:01.003962,"{'gravity': 5.0, 'temperature': 350, 'num_particles': 25}",unsupported operand type(s) for /: 'NoneType' and 'int',False

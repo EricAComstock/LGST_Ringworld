@@ -60,9 +60,9 @@ def _process_trajectory_numpy(trajectories: np.ndarray, alpha: float, beta: floa
     """
     # Convert to numpy array if it's a DataFrame
     if hasattr(trajectories, 'values'):
-        traj = trajectories.values[:, :3]  # Take first 3 columns if more exist
+        traj = trajectories.values[:, :3].astype(np.float64)  # Force float64 to avoid overflow
     else:
-        traj = np.asarray(trajectories)[:, :3]  # Ensure numpy array
+        traj = np.asarray(trajectories, dtype=np.float64)[:, :3]  # Ensure float64 array
     
     # Pre-compute all positions and distances for better performance
     x = traj[:, 0]

@@ -14,10 +14,11 @@ import random
 
 # Default parameters
 T = 289  # Temperature [K]
-y_min = 149597870691 + 218 * 1000  # Minimum spawn altitude [m]
-y_max = 149597870691 + 218 * 1000 + 10 * 1000  # Maximum spawn altitude [m]
 z_length = 10000 * 1000  # Total z-length [m]
 y_floor = 149597870691  # Ringworld floor (1 AU) [m]
+alpha = y_floor - (218 * 1000)  # Atmosphere boundary [m]
+y_min = alpha - 10000  # Minimum spawn altitude [m] - FIXED to match TrajectoryClassification
+y_max = alpha  # Maximum spawn altitude [m] - FIXED to match TrajectoryClassification
 
 
 def SIVarInput(T_i, y_min_i, y_max_i, z_length_i, y_floor_i):
@@ -65,7 +66,7 @@ def stochastic_initial_conditions(T, y_min, y_max, z_length, comp_list = None):
     z_min = -int(z_length / 2)              # Left boundary
     z_max = int(z_length / 2)               # Right boundary
     z = random.randint(z_min, z_max)        # Random z position
-    y = random.randint(y_min, y_max)        # Random altitude
+    y = random.randint(int(y_min), int(y_max))        # Random altitude (convert to int)
     x = 0                                   # Start at x = 0
 
 

@@ -7,15 +7,15 @@ V1.0, Edwin Ontiveros, April 29, 2025
 """
 
 import numpy as np
+import pandas as pd
 import os
 import matplotlib.pyplot as plt
-import pandas as pd
 from datetime import datetime
 import traceback
 
 # Path operations
 from SolverSharedCodePlusSolar import compute_motion, SSCPSVarInput
-from StochasticInput import stochastic_initial_conditions, SIVarInput, T, y_min, y_max, z_length, y_floor  # Import global variables
+from StochasticInput import stochastic_initial_conditions, SIVarInput
 from TrajectoryClassification import classify_trajectory, TCVarInput
 from LeakRate import LRVarInput
 
@@ -45,10 +45,6 @@ def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100,
     results  DataFrame containing all particle simulation results
     """
     all_data = []
-    
-    # Calculate trajectory classification parameters
-    alpha = y_floor - (218 * 1000)  # Atmosphere boundary [m]
-    beta = z_length / 2  # Lateral boundary [m]
 
     print(f"Processing {num_particles} particles...")
 
@@ -197,12 +193,13 @@ if __name__ == "__main__":
     num_particles = 100  # Number of particles to simulate
 
     # Physical parameters - modify gravity for different simulations
-    g = 9.81                     # 1.0g - Standard gravity [m/s²]
+    g = 9.81                   # 1.0g - Standard gravity [m/s²]
     # g = 19.62                  # 2.0g - Double gravity [m/s²]
     # g = 4.905                  # 0.5g - Half gravity [m/s²]
     # g = 14.715                 # 1.5g [m/s²]
     # g = 2.4525                 # 0.25g [m/s²]
     # g = 29.43                  # 3.0g [m/s²]
+    # g = 0.01269381              # Custom Gravity
     G = 6.6743e-11               # Univeral gravitational constant [m^3/kg/s^2]
 
     # Atmospheric parameters
@@ -214,8 +211,8 @@ if __name__ == "__main__":
     d = 3.59e-10  # Molecular diameter [m]
 
     # Geometric parameters
-    z_length = 1000 * 1000  # Ringworld width [m]
-    y_floor = 149597870691  # Floor value (1 AU) [m]
+    z_length = 200 * 1000  # Ringworld width [m]
+    y_floor = 1000 * 1000  # Floor value (1 AU) [m]
     beta = z_length / 2  # Lateral boundary [m]
     alpha = y_floor - (218 * 1000)  # Atmosphere boundary [m]
     y_min = alpha - 10000  # Min spawn height [m]

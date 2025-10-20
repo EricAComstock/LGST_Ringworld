@@ -14,7 +14,7 @@ from datetime import datetime
 import traceback
 
 # Path operations
-from SolverSharedCodePlusSolar import compute_motion, SSCPSVarInput
+from SolverSharedCodePlusSolar_Optimized import compute_motion, SSCPSVarInput
 from StochasticInput import stochastic_initial_conditions, SIVarInput
 from TrajectoryClassification_numpy import classify_trajectory, TCVarInput
 from LeakRate import LRVarInput
@@ -37,8 +37,8 @@ SIMULATION_PARAMS = {
 # Ringworld physical parameters
 RINGWORLD_PARAMS = {
     'y_floor': 149597870691,   # Floor value (1 AU) [m]
-    'y_min': 149597870691 - 10000,  # Min spawn height [m]
-    'y_max': 149597870691,     # Max spawn height [m]
+    'y_min': 149597870691 - (218 * 1000) - 10000,  # Min spawn height [m] (alpha - 10000)
+    'y_max': 149597870691 - (218 * 1000),     # Max spawn height [m] (alpha)
     'z_length': 1000 * 1000,   # Ringworld width [m]
 }
 
@@ -148,9 +148,9 @@ def main(radius=None, gravity=None, t_max=None, dt=None, is_rotating=None,
     # Process each particle
     for i in range(params['num_particles']):
         # Progress indicator - every 5%
-        fiveP = num_particles / 20
+        fiveP = params['num_particles'] / 20
         if (i % fiveP == 0):
-            percent = 100 * i / num_particles
+            percent = 100 * i / params['num_particles']
             print(str(percent) + "% percent done")
 
         # Generate initial conditions using parameters from params
@@ -167,7 +167,8 @@ def main(radius=None, gravity=None, t_max=None, dt=None, is_rotating=None,
         try:
             # Compute trajectory
             final_position, final_velocity, solution = compute_motion(
-                initial_position, initial_velocity, radius, gravity, t_max, dt, None
+                initial_position, initial_velocity, params['radius'], params['gravity'], 
+                params['t_max'], params['dt'], None
             )
 
             # Extract trajectory data

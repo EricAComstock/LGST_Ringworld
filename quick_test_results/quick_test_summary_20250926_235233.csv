@@ -1,5 +1,0 @@
-run_id,timestamp,duration_seconds,parameters,total_particles,escaped,recaptured,resimulate,escape_fraction,recapture_fraction,resimulate_fraction,avg_beta_crossings,success
-quick_test_0001,2025-09-26T23:52:32.814646,0.206921,"{'gravity': 2.743176313, 'temperature': 289, 'num_particles': 25}",25,12,13,0,0.48,0.52,0.0,0.0,True
-quick_test_0002,2025-09-26T23:52:33.027526,0.208815,"{'gravity': 2.743176313, 'temperature': 350, 'num_particles': 25}",25,14,11,0,0.56,0.44,0.0,0.0,True
-quick_test_0003,2025-09-26T23:52:33.238864,0.231632,"{'gravity': 5.0, 'temperature': 289, 'num_particles': 25}",25,10,15,0,0.4,0.6,0.0,0.0,True
-quick_test_0004,2025-09-26T23:52:33.474940,0.233708,"{'gravity': 5.0, 'temperature': 350, 'num_particles': 25}",25,12,13,0,0.48,0.52,0.0,0.0,True

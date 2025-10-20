@@ -28,7 +28,7 @@ from typing import Dict, List, Any, Optional
 import itertools
 
 # Import the main simulation function
-from StochasticInputRK45Solver_Siyona import main as run_simulation
+from StochasticInputRK45Solver_Vectorized import main as run_simulation
 
 
 class ParameterSweepRunner:

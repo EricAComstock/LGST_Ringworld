@@ -194,7 +194,7 @@ def demonstrate_extreme_case():
     trajectory_df = pd.DataFrame(trajectory_data, columns=[0, 1, 2])
     
     final_pos = trajectory_data[-1]
-    final_r_correct = np.sqrt(final_pos[0]**2 + final_pos[1]**2)
+    final_r_correct = np.sqrt(float(final_pos[0])**2 + float(final_pos[1])**2)
     
     print(f"  Final position: x={final_pos[0]:.0f}, y={final_pos[1]:.0f}, z={final_pos[2]:.0f}")
     print(f"  Final r (correct): {final_r_correct:,.2f} m")

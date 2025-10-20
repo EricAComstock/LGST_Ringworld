@@ -72,6 +72,7 @@ def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100,
         initial_state = stochastic_initial_conditions(T, y_min, y_max, z_length, comp_list)
         initial_position = initial_state[0:3]
         initial_velocity = initial_state[3:6]
+        species = initial_state[8]
 
 
         try:
@@ -92,6 +93,7 @@ def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100,
             # Store particle data
             particle_data = {
                 'Particle #': i + 1,
+                'Species': species,
                 'Initial x': initial_position[0],
                 'Initial y': initial_position[1],
                 'Initial z': initial_position[2],
@@ -191,7 +193,7 @@ if __name__ == "__main__":
     # Simulation parameters
     t_max = 100  # Total simulation time [s]
     dt = 0.1  # Time step [s]
-    num_particles = 100  # Number of particles to simulate
+    num_particles = 10  # Number of particles to simulate
 
     # Physical parameters - modify gravity for different simulations
     g = 9.81                     # 1.0g - Standard gravity [m/s²]
@@ -220,19 +222,25 @@ if __name__ == "__main__":
 
     #atmospheric composition
     electron_charge = 1.6022e-19
-    diatomic_oxygen =   ("O2", 2.6566962e-26 * 2, 0,100)  #diatomic oxygen
 
-    helium1 =           ("He+", 6.645e-27, electron_charge * 1, 794)
-    hydro1 =            ("H+", 1.67e-27, electron_charge * 1, 1995)
-    nitro1 =            ("N+", 2.335e-26, electron_charge * 1, 3981)
-    diatomic_nitrogen = ("N2", 4.67e-26, electron_charge * 0, 17783)
-    oxy1 =              ("O+", 2.657e-26, electron_charge * 1, 31623)
-    electrons =         ("e-", 9.109e-31, electron_charge * -1, 39811)
-    helium =            ("He", 6.645e-27, electron_charge * 0, 251189)
-    comp_list = [helium1,hydro1,nitro1,diatomic_nitrogen,oxy1,electrons,helium]    #collection of all species at desired altitude
+    oxy0 =              ("O",   2.656692e-26,           electron_charge * 0,    10**9.09)
+    diatomic_nitrogen = ("N2",  2.3258671e-26 * 2,      electron_charge * 0,    10**8.56)
+    diatomic_oxygen =   ("O2",  2.6566962e-26 * 2,      electron_charge * 0,    10**7.18)
+    nitro0 =            ("N",   2.3258671e-26,          electron_charge * 0,    10**7.03)
+    helium0 =           ("He",  6.645e-27,              electron_charge * 0,    10**6.85)
+    electrons =         ("e-",  9.109e-31,              electron_charge * -1,   10**5.75)
+    oxy1 =              ("O+",  2.657e-26,              electron_charge * 1,    10**5.49)
+    hydro0 =            ("H",   1.67e-27,               electron_charge * 0,    10**5.20)
+    Argon0 =            ("Ar",  6.6335209e-26,          electron_charge * 0,    10**5.07)
+    NitroOxy1 =         ("NO+", 2.326e-26 + 2.657e-26,  electron_charge * 0,    10**4.09)
+    diatomic_oxygen1 =  ("O2+", 2.656692 * 2,           electron_charge * 1,    10**3.82)
+    nitro1 =            ("N+",  2.3258671e-26,          electron_charge * 1,    10**3.34)
+
+    
+    comp_list = [oxy0,diatomic_nitrogen,diatomic_oxygen,nitro0,helium0,electrons,
+                 oxy1,hydro0,Argon0,NitroOxy1,diatomic_oxygen1,nitro1]    #collection of all species at desired altitude
 
 
-    #Earth w/ Venus properties at 600km
 
     # Initialize all modules with parameters
     SSCPSVarInput(G)

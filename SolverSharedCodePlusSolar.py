@@ -15,7 +15,7 @@ from scipy.integrate import solve_ivp
 # Constants
 G = 6.6743e-11 # Universal Gravitational Constant
 
-def SSCPSVarInput(G_i, r_0_i, B_0_i, v_r_i):
+def SSCPSVarInput(G_i, r_0_i, B_0_i, gamma_i):
     """
     Set global parameters for solver code.
     Called by StochasticInputRK45Solver.py to pass simulation parameters.
@@ -24,17 +24,18 @@ def SSCPSVarInput(G_i, r_0_i, B_0_i, v_r_i):
 
     Inputs:
     G_i         Universal Gravitational Constant [Nm^2/kg^2]       
-    r_0         Distance From Earth to Sun (1AU) [m]
-    B_0         Solar Magnetic Field at Earth's Location [T]
-    v_r         Radial Solar Wind Speed [m/s] (Placeholder) 
+    r_0 _i        Distance From Earth to Sun (1AU) [m]
+    B_0_i         Solar Magnetic Field at Earth's Location [T]
+    v_r_i         Radial Solar Wind Speed [m/s] (Placeholder) 
+    gamma_i       Angle From the Sun's Equator to the Ringworld plane [Degrees] (Placeholder)      
     Outputs:
     None (sets global variables)
     """
-    global G, r_0, B_0, v_r
+    global G, r_0, B_0, gamma
     G = G_i
     r_0 = r_0_i
     B_0 = B_0_i
-    v_r = v_r_i
+    gamma = gamma_i
 
 def calculate_omega(radius, gravity):
     """
@@ -276,16 +277,34 @@ def compute_motion(initial_position, initial_velocity, radius, gravity, t_max, d
     # Return the final position, final velocity, and the full solution
     return final_position.tolist(), final_velocity.tolist(), solution
 
+def calculate_radial_solar_wind_speed(gamma):
+    """
+    Finds the radial solar wind speed at a particular point
 
-def calculate_magnetic_field(radius, omega):
+    Parameters:
+    gamma: angle between solar equator and the plane of the Ringworld
+
+    Returns:
+    scalar solar wind speed in radial direction (m/s)
+    """
+    if gamma < 28.7:
+        v_r = 66176
+    elif gamma > 28.7:
+        v_r = 546568
+    else:
+        v_r = 161765
+    return v_r
+        
+def calculate_magnetic_field(radius, omega, v_r):
     """
     Finds the interplanetary magnetic field induced by the Parker Spiral
-    This function uses the reference magnetic field for Earth (B_0),
-    the distance between the Sun and Earth (r_0) and solar wind speed (v_r)
+    This function uses the reference magnetic field for Earth (B_0) and
+    the distance between the Sun and Earth (r_0)
 
     Parameters:
     radius: Radius of rotation (m)
     omega: Angular velocity magnitude (rad/s) 
+    v_r: Radial solar wind speed (m/s)
 
     Returns:
     magnetic_field: 3D vector repesenting the B field experienced by the particle at a particular time and place (T = N*s/C/m)
@@ -295,15 +314,15 @@ def calculate_magnetic_field(radius, omega):
     magnetic_field = np.array([B_r, 0, B_phi])
     return magnetic_field
 
-def calculate_electric_field(magnetic_field, radius, omega):
+def calculate_electric_field(magnetic_field, radius, omega, v_r):
     """
     Calculates the electric field from solar-wind convection, induced by the magnetic field
-    This function uses solar wind speed (v_r)
 
     Parameters:
     radius: Radius of rotation (m)
     omega: Angular velocity magnitude (rad/s)
     magnetic_field: Magnetic field vector experienced by particle (T)
+    v_r: Radial solar wind speed (m/s)
 
     Returns:
     electric_field: 3D vector representing the E field experienced by the particle at a particular time and place (N/C)

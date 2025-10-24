@@ -202,7 +202,7 @@ if __name__ == "__main__":
     G = 6.6743e-11               # Univeral gravitational constant [m^3/kg/s^2]
     r_0_i = 1.496e+11            # Distance From Earth to Sun (1AU) [m]
     B_0_i = 3e-9                 # Solar Magnetic Field at Earth's Location [T]
-    v_r_i = 400000               # Radial Solar Wind Speed [m/s] (Placeholder)      
+    gamma_i = 0                  # Angle From the Sun's Equator to the Ringworld Plane [Degrees] (Placeholder)      
 
     # Atmospheric parameters
     T = 289  # Temperature [K]
@@ -225,7 +225,7 @@ if __name__ == "__main__":
     comp_list = [diatomic_oxygen]                       #collection of all species at desired altitude
 
     # Initialize all modules with parameters
-    SSCPSVarInput(G, r_0_i, B_0_i, v_r_i)
+    SSCPSVarInput(G, r_0_i, B_0_i, gamma_i)
     SIVarInput(T, y_min, y_max, z_length, y_floor)
     TCVarInput(z_length, beta, y_floor, alpha, y_min, y_max)
     LRVarInput(P_0, K_b, T, m, g, n_0, d)

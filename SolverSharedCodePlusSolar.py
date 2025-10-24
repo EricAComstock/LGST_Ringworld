@@ -285,7 +285,7 @@ def calculate_radial_solar_wind_speed(gamma):
     gamma: angle between solar equator and the plane of the Ringworld
 
     Returns:
-    scalar solar wind speed in radial direction (m/s)
+    scalar value for solar wind speed in radial direction (m/s)
     """
     if gamma < 28.7:
         v_r = 66176

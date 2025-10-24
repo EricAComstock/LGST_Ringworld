@@ -124,6 +124,22 @@ def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100,
             print(f"Error processing particle {i + 1}: {e}")
             traceback.print_exc()
 
+    #counting
+    sE = "Particles Escaped: "
+    sR = "Particles Recaptured: "
+    sN = "Particles Needing Resim: "
+    for p in all_data:
+
+
+        if p["Result"] == "escaped":
+            sE = sE + p["Species"] + " "
+        elif p["Result"] == "recaptured":
+            sR = sR + p["Species"] + " "
+        else:
+            sN = sN + p["Species"] + " "
+    print(sE)
+    print(sR)
+    print(sN)
     # Create results DataFrame
     df = pd.DataFrame(all_data)
 

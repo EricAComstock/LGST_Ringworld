@@ -75,7 +75,7 @@ def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100,
         # Generate initial conditions
         initial_state = stochastic_initial_conditions(T, y_min, y_max, z_length, comp_list)
         initial_position = initial_state[0:3]
-        initial_velocity = initial_state[4:7]
+        initial_velocity = initial_state[3:6]
 
         try:
             # Compute trajectory
@@ -160,12 +160,30 @@ def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100,
             escaped_count = df[df['Result'] == 'escaped'].shape[0]
             recaptured_count = df[df['Result'] == 'recaptured'].shape[0]
             resimulate_count = df[df['Result'] == 'resimulate'].shape[0]
+            total_crossings = df['Beta crossings'].sum() if 'Beta crossings' in df.columns else 0
+
+            # Calculate position range statistics
+            if not df.empty and 'Final x' in df.columns:
+                final_x_range = df['Final x'].max() - df['Final x'].min()
+                final_y_range = df['Final y'].max() - df['Final y'].min()
+                final_z_range = df['Final z'].max() - df['Final z'].min()
+
+                print(f"\nPosition Ranges (showing actual variation):")
+                print(f"Final X range: {final_x_range/1000:.1f} km")
+                print(f"Final Y range: {final_y_range/1000:.1f} km")
+                print(f"Final Z range: {final_z_range/1000:.1f} km")
+
+                # Show actual values for first few particles to demonstrate differences
+                print(f"\nActual Final Positions (first 5 particles):")
+                for i in range(min(5, len(df))):
+                    print(f"  Particle {i+1}: X={df.iloc[i]['Final x']/1000:.1f} km, Y={df.iloc[i]['Final y']/1000:.1f} km, Z={df.iloc[i]['Final z']/1000:.1f} km")
 
             print(f"\nSummary Statistics:")
             print(f"Total particles: {len(df)}")
             print(f"Escaped: {escaped_count} ({escaped_count / len(df) * 100:.1f}%)")
             print(f"Recaptured: {recaptured_count} ({recaptured_count / len(df) * 100:.1f}%)")
             print(f"Need resimulation: {resimulate_count} ({resimulate_count / len(df) * 100:.1f}%)")
+            print(f"Crossed boundaries: {total_crossings}")
 
             # Calculate leak rate if requested
             if find_leak_rate:

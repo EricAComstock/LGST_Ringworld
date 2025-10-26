@@ -71,7 +71,7 @@ def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100,
         # Generate initial conditions
         initial_state = stochastic_initial_conditions(T, y_min, y_max, z_length, comp_list)
         initial_position = initial_state[0:3]
-        initial_velocity = initial_state[4:7]
+        initial_velocity = initial_state[3:6]
 
         try:
             # Compute trajectory
@@ -190,16 +190,10 @@ if __name__ == "__main__":
     # Simulation parameters
     t_max = 5000 # Total simulation time [s]
     dt = 0.1  # Time step [s]
-    num_particles = 100  # Number of particles to simulate
+    num_particles = 10000  # Number of particles to simulate
 
     # Physical parameters - modify gravity for different simulations
     g = 9.81                   # 1.0g - Standard gravity [m/s²]
-    # g = 19.62                  # 2.0g - Double gravity [m/s²]
-    # g = 4.905                  # 0.5g - Half gravity [m/s²]
-    # g = 14.715                 # 1.5g [m/s²]
-    # g = 2.4525                 # 0.25g [m/s²]
-    # g = 29.43                  # 3.0g [m/s²]
-    # g = 0.01269381              # Custom Gravity
     G = 6.6743e-11               # Univeral gravitational constant [m^3/kg/s^2]
 
     # Atmospheric parameters

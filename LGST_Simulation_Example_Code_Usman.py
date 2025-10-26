@@ -71,7 +71,7 @@ def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100,
         # Generate initial conditions
         initial_state = stochastic_initial_conditions(T, y_min, y_max, z_length, comp_list)
         initial_position = initial_state[0:3]
-        initial_velocity = initial_state[4:7]
+        initial_velocity = initial_state[3:6]
 
         try:
             # Compute trajectory

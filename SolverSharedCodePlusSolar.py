@@ -16,7 +16,7 @@ from scipy.integrate import solve_ivp
 G = 6.6743e-11 # Universal Gravitational Constant
 radius = 0     # Radius of RW
 
-def SSCPSVarInput(G_i):
+def SSCPSVarInput(G_i, r_0_i, B_0_i, gamma_i):
     """
     Set global parameters for solver code.
     Called by StochasticInputRK45Solver.py to pass simulation parameters.
@@ -24,13 +24,19 @@ def SSCPSVarInput(G_i):
     SSCPSVarInput(G_i)
 
     Inputs:
-    G_i         universal gravitational constant [Nm^2/kg^2]       
-
+    G_i         Universal Gravitational Constant [Nm^2/kg^2]       
+    r_0 _i        Distance From Earth to Sun (1AU) [m]
+    B_0_i         Solar Magnetic Field at Earth's Location [T]
+    v_r_i         Radial Solar Wind Speed [m/s] (Placeholder) 
+    gamma_i       Angle From the Sun's Equator to the Ringworld plane [Degrees] (Placeholder)      
     Outputs:
     None (sets global variables)
     """
-    global G
+    global G, r_0, B_0, gamma
     G = G_i
+    r_0 = r_0_i
+    B_0 = B_0_i
+    gamma = gamma_i
 
 def calculate_omega(radius, gravity):
     """
@@ -272,6 +278,61 @@ def compute_motion(initial_position, initial_velocity, radius, gravity, t_max, d
     # Return the final position, final velocity, and the full solution
     return final_position.tolist(), final_velocity.tolist(), solution
 
+def calculate_radial_solar_wind_speed(gamma):
+    """
+    Finds the radial solar wind speed at a particular point
+
+    Parameters:
+    gamma: angle between solar equator and the plane of the Ringworld
+
+    Returns:
+    scalar value for solar wind speed in radial direction (m/s)
+    """
+    if gamma < 28.7:
+        v_r = 66176
+    elif gamma > 28.7:
+        v_r = 546568
+    else:
+        v_r = 161765
+    return v_r
+        
+def calculate_magnetic_field(radius, omega, v_r):
+    """
+    Finds the interplanetary magnetic field induced by the Parker Spiral
+    This function uses the reference magnetic field for Earth (B_0) and
+    the distance between the Sun and Earth (r_0)
+
+    Parameters:
+    radius: Radius of rotation (m)
+    omega: Angular velocity magnitude (rad/s) 
+    v_r: Radial solar wind speed (m/s)
+
+    Returns:
+    magnetic_field: 3D vector repesenting the B field experienced by the particle at a particular time and place (T = N*s/C/m)
+    """
+    B_r = B_0 * (r_0 / radius) ** 2
+    B_phi = -omega * radius * B_r / v_r 
+    magnetic_field = np.array([B_r, 0, B_phi])
+    return magnetic_field
+
+def calculate_electric_field(magnetic_field, radius, omega, v_r):
+    """
+    Calculates the electric field from solar-wind convection, induced by the magnetic field
+
+    Parameters:
+    radius: Radius of rotation (m)
+    omega: Angular velocity magnitude (rad/s)
+    magnetic_field: Magnetic field vector experienced by particle (T)
+    v_r: Radial solar wind speed (m/s)
+
+    Returns:
+    electric_field: 3D vector representing the E field experienced by the particle at a particular time and place (N/C)
+    """
+    v_combined = - (v_r - omega * radius)
+    v_vector = np.array([v_combined, 0, 0])
+    electric_field = np.cross(v_vector, magnetic_field)
+    return electric_field
+
 
 def calculate_acceleration_from_lorentz_force(particle_charge: float, particle_velocity,particle_mass:float,magnetic_field, electric_field):
     """
@@ -281,8 +342,8 @@ def calculate_acceleration_from_lorentz_force(particle_charge: float, particle_v
     particle_charge: charge of the particle in coulombs (C)
     particle_velocity: 3D vector representing the particle's current velocity (m/s)
     particle_mass: mass of the particle (kg)
-    magnetic_field: 3D vector representing the B field expirienced by the particle at a particular time and place (N/C)
-    electric_field: 3D vecotr representing the E field expirienced by the particle at a particular time and place (T = N*s/C/m)
+    magnetic_field: 3D vector representing the B field experienced by the particle at a particular time and place (T = N*s/C/m)
+    electric_field: 3D vector representing the E field experienced by the particle at a particular time and place (N/C)
 
     Returns:
     acceleration: 3D vector representing how the lorenz force affects the particle (m/s^2)

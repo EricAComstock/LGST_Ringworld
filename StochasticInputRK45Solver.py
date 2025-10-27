@@ -245,6 +245,9 @@ if __name__ == "__main__":
     # g = 2.4525                 # 0.25g [m/s²]
     # g = 29.43                  # 3.0g [m/s²]
     G = 6.6743e-11               # Univeral gravitational constant [m^3/kg/s^2]
+    r_0_i = 1.496e+11            # Distance From Earth to Sun (1AU) [m]
+    B_0_i = 3e-9                 # Solar Magnetic Field at Earth's Location [T]
+    gamma_i = 0                  # Angle From the Sun's Equator to the Ringworld Plane [Degrees] (Placeholder)      
 
     # Atmospheric parameters
     T = 289  # Temperature [K]
@@ -285,7 +288,7 @@ if __name__ == "__main__":
 
 
     # Initialize all modules with parameters
-    SSCPSVarInput(G)
+    SSCPSVarInput(G, r_0_i, B_0_i, gamma_i)
     SIVarInput(T, y_min, y_max, z_length, y_floor)
     TCVarInput(z_length, beta, y_floor, alpha, y_min, y_max)
     LRVarInput(P_0, K_b, T, m, g, n_0, d)

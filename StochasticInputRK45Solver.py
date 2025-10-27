@@ -125,21 +125,44 @@ def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100,
             traceback.print_exc()
 
     #counting
-    sE = "Particles Escaped: "
-    sR = "Particles Recaptured: "
-    sN = "Particles Needing Resim: "
+    sE = []
+    sEcounts = [0] * len(comp_list)
+    sR = []
+    sRcounts = [0] * len(comp_list)
+    sN = []
+    sNcounts = [0] * len(comp_list)
     for p in all_data:
 
 
         if p["Result"] == "escaped":
-            sE = sE + p["Species"] + " "
+            sE.append(p["Species"])
         elif p["Result"] == "recaptured":
-            sR = sR + p["Species"] + " "
+            sR.append(p["Species"])
         else:
-            sN = sN + p["Species"] + " "
-    print(sE)
-    print(sR)
-    print(sN)
+            sN.append(p["Species"])
+
+    l = len(comp_list)
+
+    for i in range(l):
+        comp = comp_list[i]
+        species = comp[0]
+        countE = sE.count(species)
+        countR = sR.count(species)
+        countN = sN.count(species)
+        sEcounts[i] = countE
+        sRcounts[i] = countR
+        sNcounts[i] = countN
+
+    loss_data = "Particles lost: "
+    return_data = "Particles returned: "
+    need_data = "Particles needing resimulation: "
+    for i in range(l): 
+        if not sEcounts[i] == 0: loss_data = loss_data + f"{comp_list[i][0]}: {sEcounts[i]} "
+    for i in range(l): 
+        if not sRcounts[i] == 0: return_data = return_data + f"{comp_list[i][0]}: {sRcounts[i]} "
+    for i in range(l): 
+        if not sNcounts[i] == 0: need_data = need_data + f"{comp_list[i][0]}: {sNcounts[i]} "
+
     # Create results DataFrame
     df = pd.DataFrame(all_data)
 
@@ -179,8 +202,11 @@ def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100,
             print(f"\nSummary Statistics:")
             print(f"Total particles: {len(df)}")
             print(f"Escaped: {escaped_count} ({escaped_count / len(df) * 100:.1f}%)")
+            print(loss_data)
             print(f"Recaptured: {recaptured_count} ({recaptured_count / len(df) * 100:.1f}%)")
+            print(return_data)
             print(f"Need resimulation: {resimulate_count} ({resimulate_count / len(df) * 100:.1f}%)")
+            print(need_data)
 
             # Calculate leak rate if requested
             if find_leak_rate:

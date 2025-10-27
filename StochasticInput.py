@@ -98,7 +98,8 @@ def stochastic_initial_conditions(T, y_min, y_max, z_length, comp_list = None):
     # Scale unit vector by magnitude
     [vx, vy, vz] = [float(v) for v in velocity_magnitude * unit_vector]
 
-    return [x, y, z, vx, vy, vz, m, q]
+    species = selected_particle[0]
+    return [x, y, z, vx, vy, vz, m, q, species]
 
 
 

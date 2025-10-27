@@ -21,7 +21,8 @@ import pandas as pd
 from StochasticInputRK45Solver_Vectorized import main_vectorized
 
 
-def run_simulation(radius, gravity, t_max, dt, is_rotating=False, num_particles=100,
+def run_simulation(radius, gravity, t_max, dt, y_min, y_max, y_floor, z_length,
+                   is_rotating=False, num_particles=100,
                    save_results=True, show_plots=False, find_leak_rate=True, comp_list=None,
                    num_processes=None, batch_size=None, output_dir=None, output_filename=None):
     """
@@ -41,6 +42,14 @@ def run_simulation(radius, gravity, t_max, dt, is_rotating=False, num_particles=
         Maximum simulation time [s]
     dt : float
         Time step [s]
+    y_min : float
+        Minimum y-coordinate for particle spawning [m]
+    y_max : float
+        Maximum y-coordinate for particle spawning [m]
+    y_floor : float
+        Ringworld floor/surface y-coordinate [m]
+    z_length : float
+        Total ringworld width in z-direction [m]
     is_rotating : bool, optional
         Whether reference frame is rotating (default: False)
         Set to True when central mass is present
@@ -121,11 +130,24 @@ def run_simulation(radius, gravity, t_max, dt, is_rotating=False, num_particles=
     """
     
     # Validate required parameters
-    if radius is None or gravity is None or t_max is None or dt is None:
-        raise ValueError("radius, gravity, t_max, and dt are required parameters")
+    required_params = {
+        'radius': radius, 'gravity': gravity, 't_max': t_max, 'dt': dt,
+        'y_min': y_min, 'y_max': y_max, 'y_floor': y_floor, 'z_length': z_length
+    }
+    missing = [k for k, v in required_params.items() if v is None]
+    if missing:
+        raise ValueError(f"Required parameters missing: {', '.join(missing)}")
+    
+    # Build sim_params dict with all geometric parameters
+    sim_params = {
+        'y_min': y_min,
+        'y_max': y_max,
+        'y_floor': y_floor,
+        'z_length': z_length,
+    }
     
     # Call the vectorized solver with all parameters
-    # No hardcoded values - everything is passed through
+    # Geometric parameters passed via sim_params to override defaults
     return main_vectorized(
         radius=radius,
         gravity=gravity,
@@ -140,7 +162,8 @@ def run_simulation(radius, gravity, t_max, dt, is_rotating=False, num_particles=
         num_processes=num_processes,
         batch_size=batch_size,
         output_dir=output_dir,
-        output_filename=output_filename
+        output_filename=output_filename,
+        sim_params=sim_params
     )
 
 

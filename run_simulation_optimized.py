@@ -135,6 +135,7 @@ class SimulationLogger:
         orbital_period = params.get('orbital_period')
         if orbital_period:
             t_max = params.get('t_max', 0)
+            dt = params.get('dt', 0)
             num_orbits = t_max / orbital_period if orbital_period > 0 else 0
             
             # Format orbital period nicely
@@ -147,10 +148,27 @@ class SimulationLogger:
             
             self.logger.info(f"  Orbital period: {period_str} ({orbital_period:.0f} s)")
             self.logger.info(f"  Simulation time: {t_max:.0f} s ({t_max/3600:.2f} hours) = {num_orbits:.1f} orbits")
+            self.logger.info(f"  Time step: {dt} s")
+            
+            # Show calculation details
+            steps_per_orbit = 1500  # From calculate_orbital_sim_params
+            calculated_dt = orbital_period / steps_per_orbit
+            after_sqrt = max(0.1, np.sqrt(calculated_dt))
+            actual_steps = int(t_max / dt)
+            max_steps = 200000
+            
+            self.logger.info(f"  Time step calculation:")
+            self.logger.info(f"    - Steps per orbit target: {steps_per_orbit}")
+            self.logger.info(f"    - Initial dt (period/steps): {calculated_dt:.2f} s")
+            self.logger.info(f"    - After sqrt adjustment: {after_sqrt:.2f} s")
+            self.logger.info(f"    - Actual steps for simulation: {actual_steps:,}")
+            self.logger.info(f"    - Maximum allowed steps: {max_steps:,}")
+            if actual_steps > max_steps:
+                self.logger.info(f"    - ⚠️  Steps capped, dt increased to prevent memory overflow")
+            self.logger.info(f"    - Final dt used: {dt} s")
         else:
             self.logger.info(f"  Simulation time: {params.get('t_max', 'N/A')} s ({params.get('t_max', 0)/3600:.2f} hours)")
-        
-        self.logger.info(f"  Time step: {params.get('dt', 'N/A')} s")
+            self.logger.info(f"  Time step: {params.get('dt', 'N/A')} s")
         self.logger.info(f"  Temperature: {params.get('temperature', 'N/A')} K")
         self.logger.info(f"  Rotating frame: {params.get('is_rotating', 'N/A')}")
         self.logger.info(f"  Find leak rate: {params.get('find_leak_rate', 'N/A')}")
@@ -169,6 +187,46 @@ class SimulationLogger:
             self.logger.info(f"\nAtmospheric composition:")
             for comp in params['comp_list']:
                 self.logger.info(f"  {comp[0]}: mass={comp[1]} kg, charge={comp[2]}, density={comp[3]} particles/m³")
+    
+    def log_solver_input_params(self, params: dict):
+        """Log exact parameters being passed to the solver."""
+        self.logger.info("=" * 70)
+        self.logger.info("SOLVER INPUT PARAMETERS (Exact values passed)")
+        self.logger.info("=" * 70)
+        self.logger.info(f"\nCore simulation parameters:")
+        self.logger.info(f"  radius: {params.get('radius', 'N/A')} m")
+        self.logger.info(f"  gravity: {params.get('gravity', 'N/A')} m/s²")
+        self.logger.info(f"  t_max: {params.get('t_max', 'N/A')} s")
+        self.logger.info(f"  dt: {params.get('dt', 'N/A')} s")
+        
+        self.logger.info(f"\nGeometric parameters (spawn region):")
+        self.logger.info(f"  y_min: {params.get('y_min', 'N/A')} m ({params.get('y_min', 0)/1000:.2f} km)")
+        self.logger.info(f"  y_max: {params.get('y_max', 'N/A')} m ({params.get('y_max', 0)/1000:.2f} km)")
+        self.logger.info(f"  y_floor: {params.get('y_floor', 'N/A')} m ({params.get('y_floor', 0)/1000:.2f} km)")
+        self.logger.info(f"  z_length: {params.get('z_length', 'N/A')} m ({params.get('z_length', 0)/1000:.2f} km)")
+        
+        # Calculate and show derived values
+        y_min = params.get('y_min', 0)
+        y_max = params.get('y_max', 0)
+        y_floor = params.get('y_floor', 0)
+        spawn_range = y_max - y_min
+        distance_below_floor = y_floor - y_max
+        
+        self.logger.info(f"\nDerived values:")
+        self.logger.info(f"  Spawn range (y_max - y_min): {spawn_range:.2f} m ({spawn_range/1000:.2f} km)")
+        self.logger.info(f"  Distance below floor (y_floor - y_max): {distance_below_floor:.2f} m ({distance_below_floor/1000:.2f} km)")
+        self.logger.info(f"  Alpha (atmosphere boundary): {y_floor - 218000:.2f} m")
+        self.logger.info(f"  Beta (lateral boundary): {params.get('z_length', 0)/2:.2f} m")
+        
+        self.logger.info(f"\nParticle generation:")
+        self.logger.info(f"  num_particles: {params.get('num_particles', 'N/A')}")
+        self.logger.info(f"  temperature: {params.get('temperature', 'N/A')} K")
+        self.logger.info(f"  is_rotating: {params.get('is_rotating', 'N/A')}")
+        
+        if params.get('comp_list'):
+            self.logger.info(f"\nAtmospheric composition:")
+            for comp in params['comp_list']:
+                self.logger.info(f"  {comp[0]}: mass={comp[1]:.6e} kg, charge={comp[2]}, density={comp[3]}")
     
     def log_optimization_params(self, params: dict):
         """Log optimization and performance parameters."""
@@ -308,6 +366,12 @@ class RingworldSimulationRunner:
         # Calculate orbital period
         orbital_period = 2 * math.pi / angular_velocity  # seconds
         
+        # Adaptive number of orbits based on orbital period
+        # For very long periods, simulate fewer orbits to keep computation tractable
+        if orbital_period > 86400 * 365:  # More than 1 year
+            num_orbits = 2.0
+            print(f'⚠️  Very long orbital period ({orbital_period/86400:.1f} days), reducing to {num_orbits} orbits')
+        
         # Simulation time = num_orbits * orbital_period
         t_max = orbital_period * num_orbits
         
@@ -316,9 +380,17 @@ class RingworldSimulationRunner:
         dt = orbital_period / steps_per_orbit
         
         # Ensure reasonable bounds
-        dt = max(0.1, np.sqrt(dt))  # Between 0.1 and 100 seconds
-        print('Orbital Period (s):', orbital_period)
-        print('Time Step (s):', dt)
+        dt = max(0.1, np.sqrt(dt))
+        
+        # CRITICAL: Cap maximum number of time steps to prevent memory overflow
+        # Maximum 200,000 steps to keep memory usage reasonable (~12 MB per particle)
+        max_steps = 200000
+        actual_steps = int(t_max / dt)
+        
+        if actual_steps > max_steps:
+            old_dt = dt
+            dt = t_max / max_steps
+            print(f'⚠️  Capping time steps at {max_steps:,} (dt: {old_dt:.2f}s → {dt:.2f}s)')
         
         return t_max, dt, orbital_period
     
@@ -476,6 +548,7 @@ class RingworldSimulationRunner:
         sim_logger.log_code_versions()
         sim_logger.log_ringworld_params(row)
         sim_logger.log_simulation_params(params)
+        sim_logger.log_solver_input_params(params)  # NEW: Log exact params passed to solver
         sim_logger.log_optimization_params(params)
         
         print(f"\n{'='*70}")
@@ -495,6 +568,10 @@ class RingworldSimulationRunner:
                 gravity=params['gravity'],
                 t_max=params['t_max'],
                 dt=params['dt'],
+                y_min=params['y_min'],
+                y_max=params['y_max'],
+                y_floor=params['y_floor'],
+                z_length=params['z_length'],
                 is_rotating=params['is_rotating'],
                 num_particles=params['num_particles'],
                 save_results=params['save_results'],

@@ -1,295 +1,149 @@
-# run_simulation_optimized.py - Comprehensive Simulation Runner
+# run_simulation_optimized.py – Production Simulation Runner
 
 ## Overview
 
-`run_simulation_optimized.py` is an enhanced simulation runner that integrates the optimized LGST simulation code with CSV parameter management and comprehensive logging for reproducibility.
+`run_simulation_optimized.py` is the production entry point for running atmospheric retention simulations across the full catalog of ringworld configurations. It couples CSV-driven parameter management with the optimized solver stack, orbital-aware timing, and comprehensive logging so that every run is reproducible and auditable.@LGST_Ringworld/run_simulation_optimized.py#1-310
 
-## Key Features
-
-### ✅ CSV Parameter Integration
-- Reads ringworld parameters from `ringworld_parameters.csv`
-- Supports all ringworld configurations (Bishop Ring to Seyfert Ringworlds)
-- Automatic unit conversion (km to meters)
-- Central mass parsing (supports formats like "1xSun", "0.05*Jupiter", "2 Mars")
-
-### ✅ Optimized Simulation Stack
-- Uses `LGST_Simulation_Wrapper.py`
-- Vectorized solver (`StochasticInputRK45Solver_Vectorized.py`)
-- Optimized physics (`SolverSharedCodePlusSolar_Optimized.py`)
-- Fast NumPy classification (`TrajectoryClassification_numpy.py`)
-
-### ✅ Comprehensive Logging
-Each simulation creates a detailed log file containing:
-- **System Information**: Python version, NumPy version, git commit, timestamp
-- **Code Versions**: All module files being used
-- **Ringworld Parameters**: Designation, radius, width, gravity, angular velocity, central mass
-- **Simulation Parameters**: Particles, time, temperature, geometric parameters, atmospheric composition
-- **Optimization Parameters**: Parallel processes, batch size, solver type
-- **Results**: Duration, escape/recapture fractions, leak rate analysis
-- **Error Information**: Full traceback if simulation fails
-
-### ✅ Organized Output Structure
-```
-simulation_results/
-├── logs/
-│   ├── Bishop_Ring_10000particles_20251025_160230.log
-│   ├── T5_class_Ringworld_10000particles_20251025_160245.log
-│   └── ...
-└── [Excel files from simulation output]
-├── Bishop_Ring_10000particles_20251025_160230.xlsx
-├── T5_class_Ringworld_10000particles_20251025_160245.xlsx
-├── ...
-```
-
-## Usage
-
-### Basic Usage
+## Quick Start
 
 ```bash
-# Run all simulations from CSV
+# Run every configuration in ringworld_parameters.csv
 python run_simulation_optimized.py
 
-# Run specific priority
-python run_simulation_optimized.py --priority 1
-
-# Run specific ringworld by designation
-python run_simulation_optimized.py --designation "Bishop Ring"
-
-# Run specific row (0-indexed)
+# Target a single configuration by row (0-indexed)
 python run_simulation_optimized.py --row 0
 
-# Limit number of runs
+# Filter by designation or priority
+python run_simulation_optimized.py --designation "Bishop Ring"
+python run_simulation_optimized.py --priority 1
+
+# Limit how many rows execute
 python run_simulation_optimized.py --max-runs 3
 ```
 
-### Parameter Overrides
+Logs and Excel output are saved into `simulation_results/`, grouped by timestamped run IDs.
 
-```bash
-# Override particle count
-python run_simulation_optimized.py --row 0 --particles 10000
+## Feature Summary
 
-# Override simulation time (seconds)
-python run_simulation_optimized.py --row 0 --t-max 10000
+1. **CSV-driven parameter pipeline** – Loads all configuration columns, converts kilometres to metres, and parses free-form central-mass descriptors before building the simulation payload.@LGST_Ringworld/run_simulation_optimized.py#319-509
+2. **Orbital-aware timing with memory safeguards** – Simulation horizon (`t_max`) and step size (`dt`) are derived from the ringworld’s angular velocity, automatically reducing orbit count for very long periods and capping the total number of steps at 200,000 to avoid memory exhaustion.@LGST_Ringworld/run_simulation_optimized.py#349-395; @MEMORY[b6a9f6bc-7309-4b31-be13-f744f71ebdde]
+3. **Optimized solver stack** – Delegates execution to `LGST_Simulation_Wrapper.run_simulation`, which wraps the vectorized solver, optimized physics engine, NumPy trajectory classification, and leak-rate analysis.@LGST_Ringworld/run_simulation_optimized.py#41-47; @LGST_Ringworld/LGST_Simulation_Wrapper.py#1-168; @MEMORY[94b46c62-5bb8-4182-a31b-385042c8956d]
+4. **Full reproducibility logging** – Each run produces a timestamped `.log` capturing system info, code versions, input parameters (including derived orbital metrics), solver inputs, parallelization settings, and end-state statistics.@LGST_Ringworld/run_simulation_optimized.py#49-300
+5. **Batch execution supervisor** – Filters by priority, designation, or row and collates results/summary statistics across all requested simulations.@LGST_Ringworld/run_simulation_optimized.py#618-667
 
-# Override time step (seconds)
-python run_simulation_optimized.py --row 0 --dt 0.5
-
-# Override temperature (Kelvin)
-python run_simulation_optimized.py --row 0 --temperature 500
-
-# Combine multiple overrides
-python run_simulation_optimized.py --row 0 --particles 50000 --t-max 10000 --temperature 300
-```
-
-### Advanced Usage
-
-```bash
-# Use custom CSV file
-python run_simulation_optimized.py --csv my_parameters.csv
-
-# Save to custom directory
-python run_simulation_optimized.py --results-dir my_results
-
-# Run first 5 simulations with custom parameters
-python run_simulation_v2.py --max-runs 5 --particles 5000 --t-max 8000
-```
-
-## Command Line Arguments
-
-| Argument | Type | Default | Description |
-|----------|------|---------|-------------|
-| `--csv` | string | `ringworld_parameters.csv` | Path to CSV file with parameters |
-| `--results-dir` | string | `simulation_results` | Directory to save results |
-| `--priority` | int | None | Run only simulations with this priority |
-| `--designation` | string | None | Run simulations matching this designation |
-| `--row` | int | None | Run simulation for specific row index (0-based) |
-| `--max-runs` | int | None | Maximum number of simulations to run |
-| `--particles` | int | None | Override number of particles |
-| `--t-max` | float | None | Override simulation time (seconds) |
-| `--dt` | float | None | Override time step (seconds) |
-| `--temperature` | float | None | Override temperature (Kelvin) |
-
-## CSV Format
-
-The CSV file should have the following columns:
-
-| Column | Description | Example |
-|--------|-------------|---------|
-| `Priority` | Simulation priority | 1 |
-| `Designation` | Ringworld name | "Bishop Ring" |
-| `Width (km)` | Ringworld width in km | 200 |
-| `Radius (km)` | Ringworld radius in km | 1000 |
-| `Gravity (m/s^2)` | Surface gravity | 9.81 |
-| `Ringworld angular velocity (rad/s)` | Angular velocity | 0.003132092 |
-| `Central mass` | Central body mass | "1xSun", "0.05*Jupiter", "None" |
-
-## Default Simulation Parameters
-
-When not overridden, the following defaults are used:
-
-- **Particles**: 10,000
-- **Simulation time**: 5,000 seconds
-- **Time step**: 0.1 seconds
-- **Temperature**: 289 K
-- **Atmospheric composition**: Diatomic oxygen (O2)
-- **Spawn altitude**: 218-228 km above surface
-- **Parallel processing**: Auto-detect optimal settings
-
-## Log File Contents
-
-Each log file contains complete information for reproducibility:
+## Architecture & Module Dependencies
 
 ```
-======================================================================
-SYSTEM INFORMATION
-======================================================================
-Python version: 3.x.x
-NumPy version: 1.x.x
-Pandas version: 2.x.x
-Working directory: /path/to/ringworld
-Timestamp: 2025-10-25T16:02:30.123456
-Git commit: abc123def456...
-
-======================================================================
-CODE VERSIONS
-======================================================================
-Main simulation: LGST_Simulation_Example_Code_Usman_Updated_Optimized.py
-Solver: StochasticInputRK45Solver_Vectorized.py
-Physics: SolverSharedCodePlusSolar_Optimized.py
-Classification: TrajectoryClassification_numpy.py
-Initial conditions: StochasticInput.py
-Leak rate: LeakRate.py
-
-======================================================================
-RINGWORLD PARAMETERS
-======================================================================
-Designation: Bishop Ring
-Priority: 1
-Width: 200 km
-Radius: 1000 km
-Gravity: 9.81 m/s²
-Angular velocity: 0.003132092 rad/s
-Central mass: None
-
-======================================================================
-SIMULATION PARAMETERS
-======================================================================
-Number of particles: 10000
-Simulation time: 5000 s (1.39 hours)
-Time step: 0.1 s
-Temperature: 289 K
-Rotating frame: False
-Find leak rate: True
-
-Geometric parameters:
-  Radius (y_floor): 1000000.0 m
-  Width (z_length): 200000.0 m
-  Spawn altitude min (y_min): 772000.0 m
-  Spawn altitude max (y_max): 782000.0 m
-
-Atmospheric composition:
-  O2: mass=5.3133924e-26 kg, charge=0, density=100 particles/m³
-
-======================================================================
-OPTIMIZATION PARAMETERS
-======================================================================
-Parallel processes: Auto-detect
-Batch size: Auto-detect
-Using vectorized solver: Yes
-Using NumPy classification: Yes
-
-======================================================================
-SIMULATION RESULTS
-======================================================================
-Duration: 45.23 seconds (0.75 minutes)
-Total particles: 10000
-Escaped: 234 (2.3400%)
-Recaptured: 9766 (97.6600%)
-Resimulate: 0 (0.0000%)
-
-Leak rate analysis:
-  Leak rate: 1.23e-5 kg/s
-  Atmospheric lifetime: 2.34e8 years
+run_simulation_optimized.py
+  └── LGST_Simulation_Wrapper.run_simulation()
+        └── StochasticInputRK45Solver_Vectorized.main_vectorized()
+              ├── SolverSharedCodePlusSolar_Optimized.compute_motion()
+              ├── StochasticInput.stochastic_initial_conditions()
+              ├── TrajectoryClassification_numpy.classify_trajectory()
+              └── LeakRate.*
 ```
 
-## Testing
+- **LGST_Simulation_Wrapper.py** – Pass-through wrapper ensuring all geometric and solver parameters arrive explicitly, preventing hidden defaults.@LGST_Ringworld/LGST_Simulation_Wrapper.py#24-168
+- **StochasticInputRK45Solver_Vectorized.py** – Parallel/vectorized engine with intelligent batching and CPU detection for high particle counts.@LGST_Ringworld/StochasticInputRK45Solver_Vectorized.py#1-400
+- **SolverSharedCodePlusSolar_Optimized.py** – Float64-safe physics integrator with cached angular velocity and overflow-protected solar gravity calculations.@LGST_Ringworld/SolverSharedCodePlusSolar_Optimized.py#1-240
+- **TrajectoryClassification_numpy.py** – NumPy-based classifier that avoids integer overflow and mirrors the original logic, fixing the historical radial-distance bug.@MEMORY[890e1591-1e54-4e80-8269-84b8468d2a49]; @MEMORY[bab19fcc-cc8e-445e-b5ee-a43aaca121f2]
+- **LeakRate.py** – Computes leak rate and atmospheric lifetime using the final particle classifications.
 
-Run the test script to validate the installation:
+All modules are initialized per-run via `SSCPSVarInput`, `SIVarInput`, `TCVarInput`, and `LRVarInput` before the solver executes.@LGST_Ringworld/run_simulation_optimized.py#511-525
 
-```bash
-python test_run_simulation_v2.py
-```
+## Parameter Handling
 
-This will run a quick test with Bishop Ring using 100 particles (~1-3 seconds).
+### Required CSV Columns
 
-## Comparison with Original run_simulation.py
+| Column | Description | Notes |
+| --- | --- | --- |
+| `Priority` | Scheduling priority | Integer filterable via `--priority` |
+| `Designation` | Ringworld name | Used in log/run ID generation |
+| `Width (km)` | Ring plane width | Converted to `z_length` (metres) |
+| `Radius (km)` | Radial distance to floor | Converted to `radius`, `y_floor` |
+| `Gravity (m/s^2)` | Surface gravity | Passed to solver and leak rate |
+| `Ringworld angular velocity (rad/s)` | Rotation rate | Drives orbital timing logic |
+| `Central mass` | e.g. `1xSun`, `0.05*Jupiter`, `None` | Parsed into `solar_mu` and toggles rotating frame |
+| `Atmosphere Thickness (km)` *(optional)* | Overrides default 218 km | Determines spawn region |
+| `Spawn Range (km)` *(optional)* | Overrides default 10 km | Controls `y_min` buffer |
 
-| Feature | Original | run_simulation_v2.py |
-|---------|----------|---------------------|
-| CSV Integration | ❌ No | ✅ Yes |
-| Comprehensive Logging | ❌ No | ✅ Yes |
-| Reproducibility Info | ❌ No | ✅ Yes |
-| Command Line Interface | ❌ Limited | ✅ Full |
-| Parameter Overrides | ❌ No | ✅ Yes |
-| Organized Output | ❌ No | ✅ Yes |
-| Optimized Solver | ⚠️ Partial | ✅ Full |
-| Error Handling | ⚠️ Basic | ✅ Comprehensive |
+### Derived Simulation Inputs
 
-## Integration with Existing Tools
+- `radius` / `y_floor` – Base altitude for the floor (metres).
+- `z_length` – Ring width (metres).
+- `y_min`, `y_max` – Spawn band inside the atmosphere (`floor - thickness ± range`).
+- `alpha`, `beta` – Passed to classification during module initialization.
+- `is_rotating` – Enabled automatically when a central mass is supplied so the solver includes solar gravity.
 
-`run_simulation_v2.py` works seamlessly with existing tools:
+### Command Line Arguments
 
-- **csv_parameter_runner.py**: Similar functionality but with different interface
-- **run_quick_test.py**: Quick testing with predefined modes
-- **parameter_sweep.py**: Parameter space exploration
+| Argument | Type | Default | Effect |
+| --- | --- | --- | --- |
+| `--csv` | str | `ringworld_parameters.csv` | Override CSV source |
+| `--results-dir` | str | `simulation_results` | Change output root |
+| `--priority` | int | `None` | Filter by priority |
+| `--designation` | str | `None` | Case-insensitive substring match |
+| `--row` | int | `None` | Run a single row (0-index) |
+| `--max-runs` | int | `None` | Limit number of rows processed |
+| `--particles` | int | `None` | Override particle count |
+| `--t-max` | float | `None` | Force simulation horizon |
+| `--dt` | float | `None` | Force time step |
+| `--temperature` | float | `None` | Override Maxwell-Boltzmann temperature |
+| `--num-orbits` | float | `None` | Recalculate `t_max`/`dt` using orbital-period logic |
 
-Choose the tool based on your needs:
-- Use `run_simulation_v2.py` for production runs with full logging
-- Use `run_quick_test.py` for rapid testing and development
-- Use `parameter_sweep.py` for systematic parameter studies
+Parameter overrides are merged last so you can blend CSV data with ad-hoc experiments (e.g. `--row 0 --particles 50000 --num-orbits 2`).@LGST_Ringworld/run_simulation_optimized.py#706-759
+
+## Output & Logging
+
+- **Excel results** – Particle trajectories, velocities, and classifications saved to `<results_dir>/<run_id>.xlsx` when `save_results=True` (default).@LGST_Ringworld/run_simulation_optimized.py#566-585; @LGST_Ringworld/StochasticInputRK45Solver_Vectorized.py#373-399
+- **Logs** – `<results_dir>/logs/<run_id>.log` capturing:
+  - System / environment snapshot
+  - Code versions (module list)
+  - Source CSV data for the ringworld row
+  - Simulation parameters (including orbital-period breakdown and derived spawn geometry)
+  - Exact arguments passed to the solver
+  - Parallelization strategy (cores, batch size)
+  - Aggregate results and leak-rate metrics
+  - Full tracebacks for any exception
+
+If particles land in the “resimulate” bucket, the log explicitly warns that `t_max` might need to increase.@LGST_Ringworld/run_simulation_optimized.py#248-276
+
+### Log Analysis Utility (`parse_simulation_logs.py`)
+
+- Run `python parse_simulation_logs.py` to aggregate every log in `simulation_results/logs/` into a single CSV report stored at `simulation_results/compiled_results/compiled_simulation_logs.csv`.@LGST_Ringworld/parse_simulation_logs.py#313-334
+- The parser extracts timestamps, git commit hashes, configuration metadata (designation, priority, geometric parameters), orbital timing details, solver stack versions, parallelization settings, and outcome statistics (escaped/recaptured/resimulate counts and percentages).@LGST_Ringworld/parse_simulation_logs.py#16-259
+- Missing directories or log files are handled gracefully, and the script reports how many files were processed plus the number of columns written so you can validate coverage quickly.@LGST_Ringworld/parse_simulation_logs.py#266-311
+
+## Recommended Workflow
+
+1. **Dry run:** start with `--row <index> --particles 100` to verify the configuration and inspect the log.
+2. **Scale up:** bump `--particles` and optionally `--num-orbits` to ensure the bulk of particles finish without resimulation.
+3. **Full sweep:** remove filters or use `--max-runs` for staged execution across the catalog.
+4. **Review outputs:** compare `.log` summaries and Excel results; feed them into downstream analysis scripts such as `parameter_sweep.py` or custom notebooks.
+
+## Operational Safeguards
+
+- **Memory protection** – Automatic cap at 200,000 steps per run limits per-particle memory use to ~12 MB while still allowing multi-orbit simulations; overrides (`--t-max`, `--dt`) respect the cap by increasing step size when necessary.@LGST_Ringworld/run_simulation_optimized.py#380-394
+- **Numerical stability** – All physics calculations run in float64 across the solver stack, fixing historic overflow issues in both orbital dynamics and trajectory classification.@LGST_Ringworld/SolverSharedCodePlusSolar_Optimized.py#68-240; @MEMORY[890e1591-1e54-4e80-8269-84b8468d2a49]
+- **Parameter sanity** – Central-mass parsing ignores malformed strings rather than crashing, keeping runs resilient to partial CSV data.@LGST_Ringworld/run_simulation_optimized.py#397-430
 
 ## Troubleshooting
 
-### CSV File Not Found
-```
-❌ Error: CSV file 'ringworld_parameters.csv' not found
-```
-**Solution**: Ensure the CSV file exists in the current directory or specify the full path with `--csv`
+| Symptom | Likely Cause | Resolution |
+| --- | --- | --- |
+| `CSV file ... not found` | Wrong working directory | Launch commands from `LGST_Ringworld/` or pass `--csv` with an absolute path.@LGST_Ringworld/run_simulation_optimized.py#723-726 |
+| All particles show `resimulate` | Simulation horizon too short | Increase `--num-orbits` or `--t-max`; review log warnings for capped step counts.@LGST_Ringworld/run_simulation_optimized.py#166-276 |
+| `ModuleNotFoundError` for optimized modules | Script executed outside project root | Ensure `PYTHONPATH` includes the repository root or run from the project directory.
+| Zero escapes at extreme temperatures | Indicates earlier dictionary parameter bug – confirmed resolved in the optimized stack; ensure you are running this script (not legacy versions).@MEMORY[f73a3faa-d709-4f66-a63f-e18edfd96dd0]
+| Long runtimes on ultra-large rings | dt expanded to honor step cap | Explicitly set `--dt` or reduce `--num-orbits`; logs show the capped value used.
 
-### Import Errors
-```
-ModuleNotFoundError: No module named 'LGST_Simulation_Example_Code_Usman_Updated_Optimized'
-```
-**Solution**: Ensure you're running from the LGST_Ringworld directory
+## Integration with Other Tools
 
-### Simulation Fails
-Check the log file in `simulation_results/logs/` for detailed error information including full traceback.
-
-## Performance Tips
-
-1. **Start Small**: Test with `--particles 100` before running large simulations
-2. **Use Row Index**: `--row 0` is faster than filtering by designation
-3. **Parallel Processing**: The script auto-detects optimal CPU usage
-4. **Monitor Logs**: Check log files for performance bottlenecks
-
-## Future Enhancements
-
-Potential improvements for future versions:
-- Resume interrupted simulations
-- Parallel execution of multiple ringworld configurations
-- Real-time progress monitoring
-- Automatic result comparison with previous runs
-- Integration with analysis tools
-
-## Support
-
-For issues or questions:
-1. Check the log file for detailed error information
-2. Run the test script: `python test_run_simulation_v2.py`
-3. Verify CSV format matches expected structure
-4. Ensure all required modules are available
+- **`parameter_sweep.py`** – Uses the same optimized stack for systematic studies, so logs and outputs remain consistent.@MEMORY[82d81894-a4cd-4fc7-9d83-92f12edca9cf]
+- **`run_quick_test.py` / `csv_parameter_runner.py`** – Compatible wrappers for targeted or scripted workflows.@MEMORY[94b46c62-5bb8-4182-a31b-385042c8956d]
+- **Legacy scripts** – `run_simulation.py` and other exploratory utilities remain available but do not benefit from the vectorized optimizations.
 
 ## Version History
 
-- **v1.0** (October 2025): Initial release with comprehensive logging and CSV integration
-- Based on optimized solver stack with vectorized processing and NumPy classification
+- **v1.0 (Oct 2025)** – First optimized release featuring CSV integration, orbital-based timing, solver stack upgrades, float64 trajectory classification, and reproducibility logging.
+

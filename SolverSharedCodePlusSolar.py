@@ -28,7 +28,7 @@ def SSCPSVarInput(G_i, r_0_i, B_0_i, gamma_i):
     r_0 _i        Distance From Earth to Sun (1AU) [m]
     B_0_i         Solar Magnetic Field at Earth's Location [T]
     v_r_i         Radial Solar Wind Speed [m/s] (Placeholder) 
-    gamma_i       Angle From the Sun's Equator to the Ringworld plane [Degrees] (Placeholder)      
+    gamma_i       Angle From the Sun's Equator to the Ringworld plane [Radians] (Placeholder)      
     Outputs:
     None (sets global variables)
     """
@@ -280,13 +280,13 @@ def compute_motion(initial_position, initial_velocity, radius, gravity, t_max, d
 
 def calculate_radial_solar_wind_speed(gamma):
     """
-    Finds the radial solar wind speed at a particular point
+    Finds the radial solar wind speed and velocity at a particular point 
 
     Parameters:
     gamma: angle between solar equator and the plane of the Ringworld
 
     Returns:
-    scalar value for solar wind speed in radial direction (m/s)
+    scalar value for solar wind speed in radial direction and vector value for velocity (m/s)
     """
     if gamma < 28.7:
         v_r = 66176
@@ -294,7 +294,9 @@ def calculate_radial_solar_wind_speed(gamma):
         v_r = 546568
     else:
         v_r = 161765
-    return v_r
+    v_r_vector = np.array([v_r, 0, 0])
+    return v_r, v_r_vector
+    
         
 def calculate_magnetic_field(radius, omega, v_r):
     """
@@ -315,24 +317,25 @@ def calculate_magnetic_field(radius, omega, v_r):
     magnetic_field = np.array([B_r, 0, B_phi])
     return magnetic_field
 
-def calculate_electric_field(magnetic_field, radius, omega, v_r):
+def calculate_electric_field(magnetic_field, radius, omega_vector, v_r_vector, r, r_mag):
     """
     Calculates the electric field from solar-wind convection, induced by the magnetic field
 
     Parameters:
+    r: position vector of individual particles (m)
+    r_mag: magnitude of position vector of individual particles
     radius: Radius of rotation (m)
-    omega: Angular velocity magnitude (rad/s)
+    omega_vector: Angular velocity vector (rad/s)
     magnetic_field: Magnetic field vector experienced by particle (T)
-    v_r: Radial solar wind speed (m/s)
+    v_r_vector: Radial solar wind velocity (m/s)
 
     Returns:
     electric_field: 3D vector representing the E field experienced by the particle at a particular time and place (N/C)
     """
-    v_combined = - (v_r - omega * radius)
-    v_vector = np.array([v_combined, 0, 0])
-    electric_field = np.cross(v_vector, magnetic_field)
+    v_r_inertial = v_r_vector * r / r_mag
+    v_combined = - (v_r_inertial - omega_vector * radius)
+    electric_field = np.cross(v_combined, magnetic_field)
     return electric_field
-
 
 def calculate_acceleration_from_lorentz_force(particle_charge: float, particle_velocity,particle_mass:float,magnetic_field, electric_field):
     """

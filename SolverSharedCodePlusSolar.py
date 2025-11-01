@@ -278,15 +278,21 @@ def compute_motion(initial_position, initial_velocity, radius, gravity, t_max, d
     # Return the final position, final velocity, and the full solution
     return final_position.tolist(), final_velocity.tolist(), solution
 
-def calculate_radial_solar_wind_speed(gamma):
+def calculate_solar_wind_velocity(gamma, r, r_mag, omega, theta):
     """
-    Finds the radial solar wind speed and velocity at a particular point 
+    Finds the radial solar wind velocity at a particular point and returns the speed 
+    and velocity in the rotating frame
 
     Parameters:
-    gamma: angle between solar equator and the plane of the Ringworld
+    gamma: angle between solar equator and the plane of the Ringworld (rad)
+    r: position vector of individual particles (m)
+    r_mag: magnitude of position vector of individual particles
+    omega: Angular velocity magnitude (rad/s) 
+    theta: Current rotation angle (rad)
 
     Returns:
-    scalar value for solar wind speed in radial direction and vector value for velocity (m/s)
+    v_r: solar wind speed (m/s)
+    v_r_rotating: solar wind velocity in the rotating frame (m/s)
     """
     if gamma < 28.7:
         v_r = 66176
@@ -295,7 +301,9 @@ def calculate_radial_solar_wind_speed(gamma):
     else:
         v_r = 161765
     v_r_vector = np.array([v_r, 0, 0])
-    return v_r, v_r_vector
+    v_r_inertial = v_r_vector * r / r_mag
+    [r_r_rotating, v_r_rotating] = inertial_to_rotating(r, v_r_inertial, omega, theta)
+    return v_r, v_r_rotating
     
         
 def calculate_magnetic_field(radius, omega, v_r):
@@ -317,23 +325,20 @@ def calculate_magnetic_field(radius, omega, v_r):
     magnetic_field = np.array([B_r, 0, B_phi])
     return magnetic_field
 
-def calculate_electric_field(magnetic_field, radius, omega_vector, v_r_vector, r, r_mag):
+def calculate_electric_field(magnetic_field, radius, omega_vector, v_r_rotating):
     """
     Calculates the electric field from solar-wind convection, induced by the magnetic field
 
     Parameters:
-    r: position vector of individual particles (m)
-    r_mag: magnitude of position vector of individual particles
+    magnetic_field: Magnetic field vector experienced by particle (T)
     radius: Radius of rotation (m)
     omega_vector: Angular velocity vector (rad/s)
-    magnetic_field: Magnetic field vector experienced by particle (T)
-    v_r_vector: Radial solar wind velocity (m/s)
+    v_r_rotating: Solar wind velocity in rotating frame (m/s)
 
     Returns:
     electric_field: 3D vector representing the E field experienced by the particle at a particular time and place (N/C)
     """
-    v_r_inertial = v_r_vector * r / r_mag
-    v_combined = - (v_r_inertial - omega_vector * radius)
+    v_combined = - (v_r_rotating - omega_vector * radius)
     electric_field = np.cross(v_combined, magnetic_field)
     return electric_field
 

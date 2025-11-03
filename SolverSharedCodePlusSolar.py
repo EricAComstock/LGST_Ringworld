@@ -99,7 +99,9 @@ def equations_of_motion_rotating(t, state, omega, solar_mu=None):
     Returns:
     Derivatives of state vector [dx/dt, dy/dt, dz/dt, dvx/dt, dvy/dt, dvz/dt, dq/dt, dm/dt]
     """
-    r, v = state[:3], state[3:6]
+    r, v, q, m = state[:3], state[3:6], state[6], state[7]
+    print(q)
+    print(m)
 
     # Position derivatives are simply the velocities
     dr_dt = v
@@ -113,8 +115,13 @@ def equations_of_motion_rotating(t, state, omega, solar_mu=None):
     # Centrifugal acceleration: -ω × (ω × r)
     centrifugal_acc = -np.cross(omega_vector, np.cross(omega_vector, r))
 
+    #lorentz acceleration
+    E_field = calculate_electric_field()
+    B_field = calculate_magnetic_field()
+    lorentz_acc = calculate_acceleration_from_lorentz_force(q, np.array[v], m, B_field, E_field, omega, np.array[r])
+
     # Combine all accelerations
-    dv_dt = coriolis_acc + centrifugal_acc
+    dv_dt = coriolis_acc + centrifugal_acc + lorentz_acc
 
     # Add solar gravity if enabled
     if solar_mu is not None:
@@ -334,7 +341,7 @@ def calculate_electric_field(magnetic_field, radius, omega, v_r):
     return electric_field
 
 
-def calculate_acceleration_from_lorentz_force(particle_charge: float, particle_velocity,particle_mass:float,magnetic_field, electric_field):
+def calculate_acceleration_from_lorentz_force(particle_charge: float, particle_velocity,particle_mass:float,magnetic_field, electric_field, omega, particle_position):
     """
     Finds the acceleration a particle expiriences under electric and magnetic forces
 
@@ -344,7 +351,9 @@ def calculate_acceleration_from_lorentz_force(particle_charge: float, particle_v
     particle_mass: mass of the particle (kg)
     magnetic_field: 3D vector representing the B field experienced by the particle at a particular time and place (T = N*s/C/m)
     electric_field: 3D vector representing the E field experienced by the particle at a particular time and place (N/C)
-
+    omega: magnitude of angular velocity (rad/s)
+    particle_position: 3D vector representing the particle's current position (m)
+    
     Returns:
     acceleration: 3D vector representing how the lorenz force affects the particle (m/s^2)
     """
@@ -353,7 +362,13 @@ def calculate_acceleration_from_lorentz_force(particle_charge: float, particle_v
     M = particle_mass
     B = magnetic_field
     E = electric_field
-    force = Q * (E+np.cross(V,B))
+    omega_vector = np.array([0, 0, omega])
+    r = particle_position
+
+    E_r = E + np.cross(np.cross(omega_vector, r), B)
+    v_r = V - np.cross(omega_vector,r)
+
+    force = Q * (E_r + np.cross(v_r,B))
     acceleration = force/M
     return acceleration
 

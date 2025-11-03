@@ -19,5 +19,7 @@ velocity = np.array([2,-1,0])
 mass = 2
 B = np.array([-3,1,0])
 E = np.array([1,1,0])
+omega = .01
+r = np.array([100,0,0])
 
-print(lorentz(charge,velocity,mass,B,E))
+print(lorentz(charge,velocity,mass,B,E, omega,r))

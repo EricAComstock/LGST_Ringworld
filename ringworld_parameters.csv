@@ -1,0 +1,27 @@
+Priority,Designation,Width (km),Radius (km),Gravity (m/s^2),Ringworld angular velocity (rad/s),Central mass
+1,Bishop Ring,200,1000,9.81,0.003132092,None
+2,McKendree Cylinder,10000,1000,9.81,0.003132092,None
+3,Medium Banks Orbital,2000,1854977.7,9.81,7.27E-05,Jupiter
+4,T5-class Ringworld,1495.978707,149597.8707,9.81,0.000256078,20xJupiter
+5,Freitas Megaring,1000000,9.40E+13,0.009561225,3.19E-10,None
+6,M3-class Ringworld,189228.0018,18922800.18,9.81,2.28E-05,0.37xSun
+7,A5-class Ringworld,5246600.155,524660015.5,9.81,4.32E-06,1.86xSun
+8,O8-class Ringworld,616807822.3,61680782226,9.81,3.99E-07,23xSun
+9,Small Banks Orbital,200,1854977.7,9.81,7.27E-05,Jupiter
+10,Large Banks Orbital,20000,1854977.7,9.81,7.27E-05,Jupiter
+11,L5-class Ringworld,3957.987625,395798.7625,9.81,0.000157434,50xJupiter
+12,M9-class Ringworld,25911.11128,2591111.128,9.81,6.15E-05,0.08xSun
+13,K4-class Ringworld,669022.0163,66902201.63,9.81,1.21E-05,0.73xSun
+14,F5-class Ringworld,2850222.24,285022224,9.81,5.87E-06,1.33xSun
+15,B8-class Ringworld,18624784.7,1862478470,9.81,2.30E-06,3.38xSun
+16,B1-class Ringworld,173752630,17375262996,9.81,7.51E-07,11xSun
+17,O3-class Ringworld,1770065877,1.77E+11,9.81,2.35E-07,120xSun
+18,Big Megaring,1000000,9.40E+15,9.56E-05,3.19E-12,1e10xSun
+19,Small Thick Megaring,94000000000,9.40E+12,0.095612253,3.19E-09,None
+20,Thick Megaring,9.40E+11,9.40E+13,0.239030633,1.59E-09,None
+21,Seyfert Ringworld (small),21156333765,2.12E+12,9.81,6.81E-08,1e6xSun
+22,Seyfert Ringworld (medium),81938128337,8.19E+12,2.742176313,1.83E-08,1e7xSun
+23,Seyfert Ringworld (large),2.99E+11,2.99E+13,0.750975912,5.01E-09,1e8xSun
+24,Quasar Ringworld (small),1.06E+12,1.06E+14,0.212408064,1.42E-09,1e9xSun
+25,Quasar Ringworld (medium),2.99E+12,2.99E+14,0.075097591,5.01E-10,1e10xSun
+26,Quasar Ringworld (large),1.77E+13,1.77E+15,0.01269381,8.47E-11,1e11xSun

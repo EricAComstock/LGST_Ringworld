@@ -145,8 +145,8 @@ def inertial_to_rotating(i_position, i_velocity, omega, theta):
     """
     # For clockwise rotation (negative omega), the rotation matrix is:
     print("Theta: ", theta)
-    theta = theta[0]
-    omega = omega[0]
+    theta = theta
+    omega = omega
     print("Theta: ", theta)
 
     R_i2r = np.array([
@@ -306,16 +306,16 @@ def calculate_solar_wind_velocity(gamma, r, r_mag, omega, theta):
     return v_r, v_r_rotating
     
         
-def calculate_magnetic_field(radius, omega, v_r):
+def calculate_magnetic_field(radius, omega, v_r, B_0, r_0):
     """
     Finds the interplanetary magnetic field induced by the Parker Spiral
-    This function uses the reference magnetic field for Earth (B_0) and
-    the distance between the Sun and Earth (r_0)
 
     Parameters:
     radius: Radius of rotation (m)
     omega: Angular velocity magnitude (rad/s) 
     v_r: Radial solar wind speed (m/s)
+    B_0: Reference solar magnetic field at Earth's location (T)
+    r_0: Distance from Earth to Sun (m)
 
     Returns:
     magnetic_field: 3D vector repesenting the B field experienced by the particle at a particular time and place (T = N*s/C/m)

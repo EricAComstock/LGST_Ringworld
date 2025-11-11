@@ -28,10 +28,10 @@ print(E)
 """
 from SolverSharedCodePlusSolar import *
 from StochasticInputRK45Solver import *
-gravity = 2 * 9.81
+gravity = 9.81
 gamma = 0
 theta = 6
-radius = 1
+radius = 1.496e+11
 r_0 = 1.496e+11
 B_0 = 3e-9
 r = (1, 1, 1)

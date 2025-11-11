@@ -116,6 +116,7 @@ def equations_of_motion_rotating(t, state, omega, solar_mu=None):
     centrifugal_acc = -np.cross(omega_vector, np.cross(omega_vector, r))
 
     #lorentz acceleration
+    v_sw = calculate_solar_wind_velocity(0, np.linalg.norm(r), omega)
     E_field = calculate_electric_field()
     B_field = calculate_magnetic_field()
     lorentz_acc = calculate_acceleration_from_lorentz_force(q, np.array[v], m, B_field, E_field, omega, np.array[r])

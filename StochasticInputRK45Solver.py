@@ -70,13 +70,15 @@ def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100,
 
         # Generate initial conditions
         initial_state = stochastic_initial_conditions(T, y_min, y_max, z_length, comp_list)
-        initial_position = initial_state[0:3]
-        initial_velocity = initial_state[4:7]
+        initial_position = initial_state[:3]
+        initial_velocity = initial_state[3:6]
+        charge = initial_state[6]
+        mass = initial_state[7]
 
         try:
             # Compute trajectory
             final_position, final_velocity, solution = compute_motion(
-                initial_position, initial_velocity, radius, gravity, t_max, dt, None
+                initial_position, initial_velocity, charge, mass, radius, gravity, t_max, dt, None
             )
 
             # Extract trajectory data
@@ -221,8 +223,8 @@ if __name__ == "__main__":
     y_max = alpha  # Max spawn height [m]
 
     #atmospheric composition
-    diatomic_oxygen = ("O2", 2.6566962e-26 * 2, 0,100)  #diatomic oxygen
-    comp_list = [diatomic_oxygen]                       #collection of all species at desired altitude
+    example1 = ("O2", 2.6566962e-26 * 2, 1,100)  #diatomic oxygen
+    comp_list = [example1]                       #collection of all species at desired altitude
 
     # Initialize all modules with parameters
     SSCPSVarInput(G, r_0_i, B_0_i, gamma_i)

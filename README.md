@@ -25,8 +25,8 @@ pseudoforces dominate the particle kinematics.
 - **X-Y plane**: Equatorial plane of the ringworld structure  
 - **Z-axis**: Orthogonal to the ringworld plane
 - **Reference**: Non-inertial rotating frame with angular velocity ω about z-axis
-- **Gamma γ**: Inclination of the ringworld to the sun's equator
-- **Phi φ**: Angle about ringworld from a top-down view. Arbitrary if γ=0, otherwise based on one of the equinoxes.
+- **Gamma γ**: Inclination of the ringworld to the sun's equator. Positive is CCW
+- **Phi φ**: Angle about ringworld from a top-down view. Arbitrary if γ=0, otherwise based on one of the equinoxes. Positive is CCW
 
 ===============================================================================
 

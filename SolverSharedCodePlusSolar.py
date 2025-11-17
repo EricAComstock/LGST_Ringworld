@@ -11,6 +11,7 @@ angular velocity computation, solar gravity, and RK45-based motion integration.
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
+import math
 
 # Constants
 G = 6.6743e-11 # Universal Gravitational Constant
@@ -99,9 +100,8 @@ def equations_of_motion_rotating(t, state, omega, solar_mu=None):
     Returns:
     Derivatives of state vector [dx/dt, dy/dt, dz/dt, dvx/dt, dvy/dt, dvz/dt, dq/dt, dm/dt]
     """
+    print(state)
     r, v, q, m = state[:3], state[3:6], state[6], state[7]
-    print(q)
-    print(m)
 
     # Position derivatives are simply the velocities
     dr_dt = v
@@ -116,10 +116,14 @@ def equations_of_motion_rotating(t, state, omega, solar_mu=None):
     centrifugal_acc = -np.cross(omega_vector, np.cross(omega_vector, r))
 
     #lorentz acceleration
-    v_sw = calculate_solar_wind_velocity(0, np.linalg.norm(r), omega)
-    E_field = calculate_electric_field()
-    B_field = calculate_magnetic_field()
-    lorentz_acc = calculate_acceleration_from_lorentz_force(q, np.array[v], m, B_field, E_field, omega, np.array[r])
+    theta = 0
+    v_sw = calculate_solar_wind_velocity(0, r)
+    v_sw_rotating = rotating_velocity(r,v_sw, omega)
+
+    B_field = calculate_magnetic_field(r, omega, v_sw_rotating)
+    E_field = calculate_electric_field(B_field, np.linalg.norm(r), omega_vector, v_sw_rotating)
+    print("mass: ", m)
+    lorentz_acc = calculate_acceleration_from_lorentz_force(q, v, m, B_field, E_field, omega, r)
 
     # Combine all accelerations
     dv_dt = coriolis_acc + centrifugal_acc + lorentz_acc
@@ -171,6 +175,15 @@ def inertial_to_rotating(i_position, i_velocity, omega, theta):
     r_velocity   = R_i2r @ i_velocity - np.cross(omega_vector, r_position)
 
     return r_position, r_velocity
+
+def rotating_velocity(position, velocity, omega):
+    omega_vector = np.array([0,0,omega])
+    rotating_term = np.cross(omega_vector, position)
+    rotating_vel = velocity - rotating_term
+    return rotating_vel
+
+
+
 
 def compute_gravity(i_position, i_velocity, omega, theta, mass, rw_position):
     """
@@ -232,9 +245,7 @@ def save_fig(i_position, i_velocity, omega, mass, rw_position, N):
     print(angles)
 
 
-#save_fig([[2e8, 0., 0.]], [[0., 0., 0.]], 1e-6, [1e13], [149597871, 0., 0.], 6)
-
-def compute_motion(initial_position, initial_velocity, radius, gravity, t_max, dt, solar_mu=None):
+def compute_motion(initial_position, initial_velocity, charge, mass, radius, gravity, t_max, dt, solar_mu=None):
     """
     Computes particle motion in the rotating frame using RK45 and returns the final state.
 
@@ -263,7 +274,7 @@ def compute_motion(initial_position, initial_velocity, radius, gravity, t_max, d
     omega            = calculate_omega(radius, gravity)
 
     # Create initial state vector [x, y, z, vx, vy, vz]
-    initial_state    = np.concatenate((initial_position, initial_velocity, [0,0]))
+    initial_state    = np.concatenate((initial_position, initial_velocity, [charge, mass]))
 
     t_span  = (0, t_max)
     t_eval  = np.arange(0, t_max + dt / 2, dt)
@@ -286,7 +297,7 @@ def compute_motion(initial_position, initial_velocity, radius, gravity, t_max, d
     # Return the final position, final velocity, and the full solution
     return final_position.tolist(), final_velocity.tolist(), solution
 
-def calculate_solar_wind_velocity(gamma, r, r_mag, omega, theta):
+def calculate_solar_wind_velocity(gamma, r):
     """
     Finds the radial solar wind velocity at a particular point and returns the speed 
     and velocity in the rotating frame
@@ -294,27 +305,28 @@ def calculate_solar_wind_velocity(gamma, r, r_mag, omega, theta):
     Parameters:
     gamma: angle between solar equator and the plane of the Ringworld (rad)
     r: position vector of individual particles (m)
-    r_mag: magnitude of position vector of individual particles
-    omega: Angular velocity magnitude (rad/s) 
-    theta: Current rotation angle (rad)
+
 
     Returns:
     v_r: solar wind speed (m/s)
     v_r_rotating: solar wind velocity in the rotating frame (m/s)
     """
     if gamma < 28.7:
-        v_r = 66176
+        speed = 66176
     elif gamma > 28.7:
-        v_r = 546568
+        speed = 546568
     else:
-        v_r = 161765
-    v_r_vector = np.array([v_r, 0, 0])
-    v_r_inertial = v_r_vector * r / r_mag
-    [r_r_rotating, v_r_rotating] = inertial_to_rotating(r, v_r_inertial, omega, theta)
-    return v_r, v_r_rotating
+        speed = 161765
     
-        
-def calculate_magnetic_field(radius, omega, v_r):
+    direction = r / np.linalg.norm(r)
+    sw_vel = speed * direction
+
+
+    return sw_vel
+
+
+#B and E fields
+def calculate_magnetic_field(position, omega, v_r):
     """
     Finds the interplanetary magnetic field induced by the Parker Spiral
     This function uses the reference magnetic field for Earth (B_0) and
@@ -328,9 +340,21 @@ def calculate_magnetic_field(radius, omega, v_r):
     Returns:
     magnetic_field: 3D vector repesenting the B field experienced by the particle at a particular time and place (T = N*s/C/m)
     """
+    radius = np.linalg.norm(position)
+    vw_speed = np.linalg.norm(v_r)
     B_r = B_0 * (r_0 / radius) ** 2
-    B_phi = -omega * radius * B_r / v_r 
-    magnetic_field = np.array([B_r, 0, B_phi])
+    B_phi = -omega * radius * B_0 /  vw_speed
+    (xpos,ypos) = (position[0], position[1])
+    theta = 0
+    if xpos == 0:
+        theta = math.pi / 2
+    else:
+        theta = math.atan(ypos/xpos)
+    B_x = B_r*math.cos(theta) - B_phi*math.sin(theta)
+    B_y = B_r*math.sin(theta) + B_phi*math.cos(theta)
+    B_z = 0
+
+    magnetic_field = np.array([B_x,B_y,B_z])
     return magnetic_field
 
 def calculate_electric_field(magnetic_field, radius, omega_vector, v_r_rotating):
@@ -384,3 +408,6 @@ def calculate_acceleration_from_lorentz_force(particle_charge: float, particle_v
     return acceleration
 
 
+if __name__ == "__main__":
+    x = calculate_magnetic_field([1,0,0], 1, [1,0,0])
+    print(x)

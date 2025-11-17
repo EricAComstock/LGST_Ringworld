@@ -3,9 +3,13 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 def plot_trajectories_from_tensor(positions, title="Particle trajectories"):
+    """
+    positions: np.ndarray of shape (T, N, 3)
+               positions[t, i] = [x, y, z] of particle i at time index t
+    """
     positions = np.asarray(positions)
     T, N, D = positions.shape
-    assert D == 3
+    assert D == 3, "Last dimension of positions must be 3 (x, y, z)."
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
@@ -27,15 +31,14 @@ def plot_trajectories_from_tensor(positions, title="Particle trajectories"):
 
 
 # Example usage:
-if __name__ == "__main__":
-    T = 500
-    N = 5
-    t = np.linspace(0, 10, T)
-    positions = np.zeros((T, N, 3))
+T = 500
+N = 5
+t = np.linspace(0, 10, T)
+positions = np.zeros((T, N, 3))
 
-    for i in range(N):
-        positions[:, i, 0] = np.cos(t + 0.5 * i)
-        positions[:, i, 1] = np.sin(t + 0.5 * i)
-        positions[:, i, 2] = 0.1 * t
+for i in range(N):
+    positions[:, i, 0] = np.cos(t + 0.5 * i)
+    positions[:, i, 1] = np.sin(t + 0.5 * i)
+    positions[:, i, 2] = 0.1 * t
 
-    plot_trajectories_from_tensor(positions)
+plot_trajectories_from_tensor(positions)

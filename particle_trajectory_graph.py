@@ -1,12 +1,55 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+import pickle
 
+def plot_trajectories_from_pkl(pkl_path):
+    # --- Load the pickle file ---
+    with open(pkl_path, 'rb') as f:
+        data = pickle.load(f)
+
+    particles = data["particles"]
+
+    # Assume only 1 particle for now (can easily support many)
+    p = particles[0]
+    traj = p["trajectory"]      # shape (T, 3)
+    time = p["time_steps"]
+
+    x = traj[:, 0]
+    y = traj[:, 1]
+    z = traj[:, 2]
+
+    # -----------------------
+    # Plot XY trajectory
+    # -----------------------
+    plt.figure(figsize=(7, 6))
+    plt.plot(x, y, linewidth=2)
+    plt.xlabel("X")
+    plt.ylabel("Y")
+    plt.title("XY Trajectory")
+    plt.grid(True)
+    plt.axis("equal")
+    plt.tight_layout()
+    plt.show()
+
+    # -----------------------
+    # Plot ZY trajectory
+    # -----------------------
+    plt.figure(figsize=(7, 6))
+    plt.plot(z, y, linewidth=2)
+    plt.xlabel("Z")
+    plt.ylabel("Y")
+    plt.title("ZY Trajectory")
+    plt.grid(True)
+    plt.axis("equal")
+    plt.tight_layout()
+    plt.show()
+
+plot_trajectories_from_pkl("Bishop_Ring_1particles_20251116_184037_trajectories.pkl")
+"""
 def plot_trajectories_from_tensor(positions, title="Particle trajectories"):
-    """
     positions: np.ndarray of shape (T, N, 3)
                positions[t, i] = [x, y, z] of particle i at time index t
-    """
     positions = np.asarray(positions)
     T, N, D = positions.shape
     assert D == 3, "Last dimension of positions must be 3 (x, y, z)."
@@ -42,3 +85,4 @@ for i in range(N):
     positions[:, i, 2] = 0.1 * t
 
 plot_trajectories_from_tensor(positions)
+"""

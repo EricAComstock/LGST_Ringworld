@@ -7,7 +7,7 @@ def plot_trajectories_from_pkl(pkl_path):
     # --- Load the pickle file ---
     with open(pkl_path, 'rb') as f:
         data = pickle.load(f)
-
+    print(data)
     particles = data["particles"]
 
     # Assume only 1 particle for now (can easily support many)

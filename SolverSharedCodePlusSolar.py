@@ -357,6 +357,7 @@ def calculate_magnetic_field(position, omega, v_r):
     magnetic_field = np.array([B_x,B_y,B_z])
     return magnetic_field
 
+
 def calculate_electric_field(magnetic_field, radius, omega_vector, v_r_rotating):
     """
     Calculates the electric field from solar-wind convection, induced by the magnetic field

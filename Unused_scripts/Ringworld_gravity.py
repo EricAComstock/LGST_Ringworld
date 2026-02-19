@@ -3,6 +3,7 @@ Ringworld gravity.py
 
 Generates plots of the gravity field induced by a ringworld and its magnitude and direction
 
+% V1.2, Eric Comstock, 19/02/2026
 % V1.1, Eric Comstock, 15/05/2025
 % V1.0, Eric Comstock, 25/02/2025
 """
@@ -75,19 +76,24 @@ def V_Ring(x, y, z, R = 149597870.7, a = 1.609344 * 1e6):
 
 # Generating plotting field
 N = 38
+N2 = 12
 
 x = np.linspace(149597870.7-1000000, 149597870.7+1000000, N)
+x2 = np.linspace(149597870.7-1000000, 149597870.7+1000000, N2 + 1)
+x2 = (x2[1:] + x2[:-1]) / 2
 y = 0
 z = np.linspace(-1000000, 1000000, N)
+z2 = np.linspace(-1000000, 1000000, N2 + 1)
+z2 = (z2[1:] + z2[:-1]) / 2
+
 X, Z = np.meshgrid(x, z)
+X2, Z2 = np.meshgrid(x2, z2)
 
 # Set this to true to plot only the potential, false to plot everything
 potential = False
 
 # Finding 
-u = X - X
-v = X - X
-w = X - X
+A = X - X
 V = X - X
 
 for i in range(len(x)):
@@ -97,22 +103,34 @@ for i in range(len(x)):
             V[i,j] = V_Ring(X[i,j], y, Z[i,j])
         else:
             ui, vi, wi = grav_vecs(V_Ring, X[i,j], y, Z[i,j])
-            u[i,j] = ui
-            v[i,j] = vi
-            w[i,j] = wi
+            A[i,j] = np.sqrt(ui ** 2 + vi ** 2 + wi ** 2)
+
+u2 = X2 - X2
+v2 = X2 - X2
+w2 = X2 - X2
+
+for i in range(len(x2)):
+    for j in range(len(z2)):
+        print((len(z2) * i + j)/len(x2)/len(z2)*100, '%')
+        ui2, vi2, wi2 = grav_vecs(V_Ring, X2[i,j], y, Z2[i,j])
+        u2[i,j] = ui2
+        v2[i,j] = vi2
+        w2[i,j] = wi2
 
 plt.close('all')
 
-plt.figure(figsize = (6, 5))
+plt.figure(figsize = (5, 4))
 if potential:
     plt.contourf(X, Z, V)
     plt.colorbar()
 else:
-    A = np.sqrt(u ** 2 + v ** 2 + w ** 2)
+    A2 = np.sqrt(u2 ** 2 + v2 ** 2 + w2 ** 2)
     
-    con = plt.contourf(X, Z, A * 1000)
-    plt.quiver(X, Z, u / A, v / A)
-    plt.xlabel('Radial distance (km)')
+    con = plt.contourf((149597870.7 - X)/1000, Z, A * 1000)
+    plt.quiver((149597870.7 - X2)/1000, Z2, -u2 / A2, w2 / A2,pivot='middle')
+    plt.xlabel('Surface height (km)')
     plt.ylabel('Vertical distance (km)')
-    plt.title('Ringworld gravitational acceleration (m/s^2)')
+    #plt.title('Ringworld gravitational acceleration (m/s^2)')
     plt.colorbar(con)
+    plt.tight_layout()
+    plt.savefig('ringworld_gravity.pdf')

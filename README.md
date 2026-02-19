@@ -25,6 +25,8 @@ pseudoforces dominate the particle kinematics.
 - **X-Y plane**: Equatorial plane of the ringworld structure  
 - **Z-axis**: Orthogonal to the ringworld plane
 - **Reference**: Non-inertial rotating frame with angular velocity ω about z-axis
+- **Gamma γ**: Inclination of the ringworld to the sun's equator
+- **Phi φ**: Angle about ringworld from a top-down view. Arbitrary if γ=0, otherwise based on one of the equinoxes.
 
 ===============================================================================
 
@@ -69,6 +71,12 @@ pseudoforces dominate the particle kinematics.
 - Computes mass flux rate using kinetic theory
 - Estimates total atmospheric lifetime in years
 
+### particle_trajectory_graph.py
+**Purpose**: Plots 3D graph of particle trajectories in ringworld
+**Features**:
+- Takes in particle time steps and positions
+- Generates a 3D plot of particle paths using trajectories
+
 ### tester-mullis-NEW.py
 **Purpose**: Verification module  
 **Features**:
@@ -80,6 +88,11 @@ pseudoforces dominate the particle kinematics.
 **Purpose**: Additional Verification module
 **Features**:
 - Preliminary testing of Electromagnetic effects in the ringworld via Lorentz force
+
+### tester-subhan.py ###
+**Purpose**: Additional Verification module
+**Features**:
+-Preliminary testing of electric and magnetic field functions for input values
 
 ### Validation_error_plot.py ###
 **Purpose**: Error Visualization

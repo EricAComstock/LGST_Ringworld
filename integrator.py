@@ -5,7 +5,7 @@ V1.0, James Stewart, September 24, 2025
 import numpy as np
 import matplotlib.pyplot as plt
 
-g = 6.6743e-11 # Universal Gravitational Constant
+G = 6.6743e-11 # Universal Gravitational Constant
 
 def inertial_to_rotating(i_position, i_velocity, omega, theta):
     """
@@ -60,7 +60,7 @@ def compute_gravity(i_position, i_velocity, omega, theta, mass, rw_position):
         r_position = inertial_to_rotating(i_position[i], i_velocity[i], omega, theta)[0]
 
         # Add to acceleration vector for Ringworld
-        acceleration_ringworld += (g * mass[i] / (np.linalg.norm(r_position - rw_position) ** 3) * (r_position - rw_position)) - (g * mass[i] / (np.linalg.norm(r_position) ** 3) * r_position)
+        acceleration_ringworld += (G * mass[i] / (np.linalg.norm(r_position - rw_position) ** 3) * (r_position - rw_position)) - (G * mass[i] / (np.linalg.norm(r_position) ** 3) * r_position)
 
 
     return acceleration_ringworld
@@ -73,7 +73,6 @@ def save_fig(i_position, i_velocity, omega, mass, rw_position, N):
     i_position (list of np.array): Position vector in inertial frame [x, y, z] of third-body objects
     i_velocity (list of np.array): Velocity vector in inertial frame [vx, vy, vz] of third-body objects
     omega (number): Angular velocity magnitude (rad/s) 
-    mass (list of float): Mass of the third-body objects (kg)
     rw_position (np.array): Position vector in inertial frame [x, y, z] of Ringworld
 
     Returns:
@@ -92,7 +91,7 @@ def save_fig(i_position, i_velocity, omega, mass, rw_position, N):
         tangential.append(acceleration_ringworld[1])
         forces.append(np.linalg.norm(acceleration_ringworld))
     plt.figure()
-    return [angles, tangential]
+    return [np.array(angles), np.array(tangential)]
 
 from scipy.integrate import cumulative_trapezoid as cumtrapz
 
@@ -196,12 +195,14 @@ def plot_velocity_results(angles, y_force, velocity_map, radius, ringworld_veloc
     plt.show()
 
 
-if __name__ == "__main__":
-    angles = np.array(save_fig([[2e11, 0., 0.]], [[0., 0., 0.]], 1e-3, [1e16], [149597871000, 0., 0.], 1000)[0])
-    radius = 149597871000
-    ringworld_velocity = np.sqrt(149597871000*9.81)
-    y_force = np.array(save_fig([[2e11, 0., 0.]], [[0., 0., 0.]], 1e-3, [1e16], [149597871000, 0., 0.], 1000)[1])
+if __name__ == "__main__": # omega = 8.53586332E-6, i_position, i_velocity, omega, mass, rw_position, N
+    angles = save_fig([np.array([-1.690367255730857E+10, -6.761862842133108E+10, -3.975545184741601E+09]),np.array([-8.657290834062675E+10, 6.344380291912919E+10, 5.866856370652959E+09]),np.array([1.431795025515026E+11, 4.265690992143974E+10, -3.681308152420446E+06])], [np.array([3.748040901281054E+04, -9.368235025154132E+03, -4.203286286629456E+03]),np.array([-2.083840702699918E+04,-2.842395145065711E+04,8.118746856672274E+02]),np.array([-8.978544418765617E+03,2.842892665702806E+04,-2.107282487841644])], 8.53586332/10**6, np.array([2e30, 2e30, 2e30]), [149597871000*1.1, 0., 0.], 1000)[0]
+    radius = 149597871000*1.1
+    ringworld_velocity = np.sqrt(1.1*149597871000*9.81)
+    y_force = save_fig([np.array([-1.690367255730857E+10, -6.761862842133108E+10, -3.975545184741601E+09]),np.array([-8.657290834062675E+10, 6.344380291912919E+10, 5.866856370652959E+09]),np.array([1.431795025515026E+11, 4.265690992143974E+10, -3.681308152420446E+06])], [np.array([3.748040901281054E+04, -9.368235025154132E+03, -4.203286286629456E+03]),np.array([-2.083840702699918E+04,-2.842395145065711E+04,8.118746856672274E+02]),np.array([-8.978544418765617E+03,2.842892665702806E+04,-2.107282487841644])], 8.53586332/10**6, np.array([2e30, 2e30, 2e30]), [149597871000*1.1, 0., 0.], 1000)[0]
     # Integrate to get velocity map
+    print(angles)
+    print(radius)
     velocity_map, arc_lengths = integrate_ringworld_velocity(y_force, angles, radius, ringworld_velocity)
     
     print(f"Integration complete!")

@@ -16,7 +16,7 @@ from scipy.integrate import solve_ivp
 G = 6.6743e-11 # Universal Gravitational Constant
 radius = 0     # Radius of RW
 
-def SSCPSVarInput(G_i):
+def SSCPSVarInput(G_i, r_0_i, B_0_i, gamma_i):
     """
     Set global parameters for solver code.
     Called by StochasticInputRK45Solver.py to pass simulation parameters.
@@ -24,13 +24,19 @@ def SSCPSVarInput(G_i):
     SSCPSVarInput(G_i)
 
     Inputs:
-    G_i         universal gravitational constant [Nm^2/kg^2]       
-
+    G_i         Universal Gravitational Constant [Nm^2/kg^2]       
+    r_0 _i        Distance From Earth to Sun (1AU) [m]
+    B_0_i         Solar Magnetic Field at Earth's Location [T]
+    v_r_i         Radial Solar Wind Speed [m/s] (Placeholder) 
+    gamma_i       Angle From the Sun's Equator to the Ringworld plane [Radians] (Placeholder)      
     Outputs:
     None (sets global variables)
     """
-    global G
+    global G, r_0, B_0, gamma
     G = G_i
+    r_0 = r_0_i
+    B_0 = B_0_i
+    gamma = gamma_i
 
 def calculate_omega(radius, gravity):
     """
@@ -139,8 +145,8 @@ def inertial_to_rotating(i_position, i_velocity, omega, theta):
     """
     # For clockwise rotation (negative omega), the rotation matrix is:
     print("Theta: ", theta)
-    theta = theta[0]
-    omega = omega[0]
+    theta = theta
+    omega = omega
     print("Theta: ", theta)
 
     R_i2r = np.array([
@@ -267,11 +273,74 @@ def compute_motion(initial_position, initial_velocity, radius, gravity, t_max, d
     ) 
     # Extract the final state
     final_position = solution.y[:3, -1]
-    final_velocity = solution.y[3:7, -1]
+    final_velocity = solution.y[3:6, -1]
 
     # Return the final position, final velocity, and the full solution
     return final_position.tolist(), final_velocity.tolist(), solution
 
+def calculate_solar_wind_velocity(gamma, r, r_mag, omega, theta):
+    """
+    Finds the radial solar wind velocity at a particular point and returns the speed 
+    and velocity in the rotating frame
+
+    Parameters:
+    gamma: angle between solar equator and the plane of the Ringworld (rad)
+    r: position vector of individual particles (m)
+    r_mag: magnitude of position vector of individual particles
+    omega: Angular velocity magnitude (rad/s) 
+    theta: Current rotation angle (rad)
+
+    Returns:
+    v_r: solar wind speed (m/s)
+    v_r_rotating: solar wind velocity in the rotating frame (m/s)
+    """
+    if gamma < 28.7:
+        v_r = 66176
+    elif gamma > 28.7:
+        v_r = 546568
+    else:
+        v_r = 161765
+    v_r_vector = np.array([v_r, 0, 0])
+    v_r_inertial = v_r_vector * r / r_mag
+    [r_r_rotating, v_r_rotating] = inertial_to_rotating(r, v_r_inertial, omega, theta)
+    return v_r, v_r_rotating
+    
+        
+def calculate_magnetic_field(radius, omega, v_r, B_0, r_0):
+    """
+    Finds the interplanetary magnetic field induced by the Parker Spiral
+
+    Parameters:
+    radius: Radius of rotation (m)
+    omega: Angular velocity magnitude (rad/s) 
+    v_r: Radial solar wind speed (m/s)
+    B_0: Reference solar magnetic field at Earth's location (T)
+    r_0: Distance from Earth to Sun (m)
+
+    Returns:
+    magnetic_field: 3D vector repesenting the B field experienced by the particle at a particular time and place (T = N*s/C/m)
+    """
+    B_r = B_0 * (r_0 / radius) ** 2
+    B_phi = -omega * radius * B_r / v_r 
+    magnetic_field = np.array([B_r, 0, B_phi])
+    return magnetic_field
+
+def calculate_electric_field(magnetic_field, radius, omega_vector, v_r_rotating):
+    """
+    Calculates the electric field from solar-wind convection, induced by the magnetic field
+
+    Parameters:
+    magnetic_field: Magnetic field vector experienced by particle (T)
+    radius: Radius of rotation (m)
+    omega_vector: Angular velocity vector (rad/s)
+    v_r_rotating: Solar wind velocity in rotating frame (m/s)
+
+    Returns:
+    electric_field: 3D vector representing the E field experienced by the particle at a particular time and place (N/C)
+    """
+    v_combined = - (v_r_rotating - omega_vector * radius)
+    electric_field = np.cross(v_combined, magnetic_field)
+    return electric_field
 
 def calculate_acceleration_from_lorentz_force(particle_charge: float, particle_velocity,particle_mass:float,magnetic_field, electric_field):
     """
@@ -281,8 +350,8 @@ def calculate_acceleration_from_lorentz_force(particle_charge: float, particle_v
     particle_charge: charge of the particle in coulombs (C)
     particle_velocity: 3D vector representing the particle's current velocity (m/s)
     particle_mass: mass of the particle (kg)
-    magnetic_field: 3D vector representing the B field expirienced by the particle at a particular time and place (N/C)
-    electric_field: 3D vecotr representing the E field expirienced by the particle at a particular time and place (T = N*s/C/m)
+    magnetic_field: 3D vector representing the B field experienced by the particle at a particular time and place (T = N*s/C/m)
+    electric_field: 3D vector representing the E field experienced by the particle at a particular time and place (N/C)
 
     Returns:
     acceleration: 3D vector representing how the lorenz force affects the particle (m/s^2)

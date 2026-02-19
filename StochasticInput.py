@@ -14,10 +14,11 @@ import random
 
 # Default parameters
 T = 289  # Temperature [K]
-y_min = 149597870691 + 218 * 1000  # Minimum spawn altitude [m]
-y_max = 149597870691 + 218 * 1000 + 10 * 1000  # Maximum spawn altitude [m]
 z_length = 10000 * 1000  # Total z-length [m]
 y_floor = 149597870691  # Ringworld floor (1 AU) [m]
+alpha = y_floor - (218 * 1000)  # Atmosphere boundary [m]
+y_min = alpha - 10000  # Minimum spawn altitude [m] - FIXED to match TrajectoryClassification
+y_max = alpha  # Maximum spawn altitude [m] - FIXED to match TrajectoryClassification
 
 
 def SIVarInput(T_i, y_min_i, y_max_i, z_length_i, y_floor_i):
@@ -56,7 +57,7 @@ def stochastic_initial_conditions(T, y_min, y_max, z_length, comp_list = None):
     y_max (int): Maximum y-coordinate for particle spawning (m)
     z_length (int): Total z-length of the domain (m)
     comp_list (list of tuples (string, float, float, float)): List of all species at a given altitude. 
-        Individual species tuples contain species name, mass, charge, and density (no units, kg, C, particles/cm^3)
+        Individual species tuples contain species name, mass, charge, and density (no units, kg, C, particles/m^3)
 
     Returns:
     list: [x, y, z, vx, vy, vz, m, q] initial position and velocity components, and particle mass and charge
@@ -65,7 +66,7 @@ def stochastic_initial_conditions(T, y_min, y_max, z_length, comp_list = None):
     z_min = -int(z_length / 2)              # Left boundary
     z_max = int(z_length / 2)               # Right boundary
     z = random.randint(z_min, z_max)        # Random z position
-    y = random.randint(y_min, y_max)        # Random altitude
+    y = random.randint(int(y_min), int(y_max))        # Random altitude (convert to int)
     x = 0                                   # Start at x = 0
 
 
@@ -97,8 +98,9 @@ def stochastic_initial_conditions(T, y_min, y_max, z_length, comp_list = None):
 
     # Scale unit vector by magnitude
     [vx, vy, vz] = [float(v) for v in velocity_magnitude * unit_vector]
-
-    return [x, y, z, vx, vy, vz, m, q]
+    
+    species = selected_particle[0]
+    return [x, y, z, vx, vy, vz, m, q, species]
 
 
 

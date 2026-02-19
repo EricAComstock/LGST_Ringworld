@@ -1,0 +1,44 @@
+"""
+tester-subhan.py
+
+Tests Magnetic Fields
+
+Version: 1.0
+Author: Subhan Ali Arshad
+Date: October 8, 2025
+"""
+
+"""
+import random
+import numpy as np
+random_radius = random.randint(1, 100)
+omega = 2.7e-6
+v_r = 400e3
+r_0 = 1.496e+11
+B_0 = 2.5e-9
+random_radius = random_radius*1.496e11
+B_r = B_0*(r_0/random_radius)**2
+r = random_radius
+B_phi = -omega*r*B_r/v_r 
+v = np.array([v_r, 0, 0])
+B = np.array([B_r, 0, B_phi])
+E = -np.cross(v, B)
+print(B)
+print(E)
+"""
+from SolverSharedCodePlusSolar import *
+from StochasticInputRK45Solver import *
+gravity = 9.81
+gamma = 0
+theta = 6
+radius = 1.496e+11
+r_0 = 1.496e+11
+B_0 = 3e-9
+r = (1, 1, 1)
+r_mag = np.linalg.norm(r)
+omega = calculate_omega(radius, gravity)
+omega_vector = np.array([0, 0, omega])
+[v_r, v_r_rotating] = calculate_solar_wind_velocity(gamma, r, r_mag, omega, theta)
+magnetic_field = calculate_magnetic_field(radius, omega, v_r, B_0, r_0)
+electric_field = calculate_electric_field(magnetic_field, radius, omega_vector, v_r_rotating)
+print(electric_field)

@@ -3,6 +3,8 @@ integrator.py
 V1.0, James Stewart, September 24, 2025
 """
 import numpy as np
+import math
+import random
 import matplotlib.pyplot as plt
 
 G = 6.6743e-11 # Universal Gravitational Constant
@@ -17,6 +19,7 @@ def inertial_to_rotating(i_position, i_velocity, omega, theta):
     omega (float): Angular velocity magnitude (rad/s)
     theta (float): Current rotation angle (rad)
 
+    
     Returns:
     tuple: (r_position, r_velocity) in rotating frame
     """
@@ -171,35 +174,82 @@ def plot_velocity_results(angles, y_force, velocity_map, radius, ringworld_veloc
     ringworld_velocity : float
         Ringworld orbital velocity
     """
-    import matplotlib.pyplot as plt
-    
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
-    
-    # Plot forces
+    fontsize = 16
+    label_fontsize = 18
+    tick_fontsize = 14
     ax1.plot(np.degrees(angles), y_force, 'b-', linewidth=2)
-    ax1.set_xlabel('Angle (degrees)')
-    ax1.set_ylabel('Tangential Force')
-    ax1.set_title('Input: Tangential Forces vs Angle')
-    ax1.grid(True, alpha=0.3)
-    
-    # Plot velocity
+    ax1.set_xlabel('Angle (degrees)', fontsize=label_fontsize)
+    ax1.set_ylabel('Tangential Force', fontsize=label_fontsize)
+    ax1.tick_params(axis='both', labelsize=tick_fontsize)
+    ax1.text(-0.1, 1.05, '(a)', transform=ax1.transAxes,
+             fontsize=fontsize, fontweight='bold', va='top', ha='right')
     ax2.plot(np.degrees(angles), velocity_map, 'r-', linewidth=2)
-    ax2.set_xlabel('Angle (degrees)')
-    ax2.set_ylabel('Velocity Perturbation')
-    ax2.set_title(f'Output: Velocity Map (R = {radius}, V = {ringworld_velocity})')
+    ax2.set_xlabel('Angle (degrees)', fontsize=label_fontsize)
+    ax2.set_ylabel('Velocity Perturbation', fontsize=label_fontsize)
     ax2.axhline(y=0, color='k', linestyle='--', alpha=0.5, label='Zero average')
-    ax2.grid(True, alpha=0.3)
-    ax2.legend()
-    
+    ax2.tick_params(axis='both', labelsize=tick_fontsize)
+    ax2.legend(fontsize=fontsize)
+    ax2.text(-0.1, 1.05, '(b)', transform=ax2.transAxes,
+             fontsize=fontsize, fontweight='bold', va='top', ha='right')
+
+    for ax in [ax1, ax2]:
+        ax.spines['top'].set_visible(False)
+        ax.spines['right'].set_visible(False)
+        ax.grid(False)
+
     plt.tight_layout()
     plt.show()
 
 
+
+
 if __name__ == "__main__": # omega = 8.53586332E-6, i_position, i_velocity, omega, mass, rw_position, N
-    angles = save_fig([np.array([-1.690367255730857E+10, -6.761862842133108E+10, -3.975545184741601E+09]),np.array([-8.657290834062675E+10, 6.344380291912919E+10, 5.866856370652959E+09]),np.array([1.431795025515026E+11, 4.265690992143974E+10, -3.681308152420446E+06])], [np.array([3.748040901281054E+04, -9.368235025154132E+03, -4.203286286629456E+03]),np.array([-2.083840702699918E+04,-2.842395145065711E+04,8.118746856672274E+02]),np.array([-8.978544418765617E+03,2.842892665702806E+04,-2.107282487841644])], 8.53586332/10**6, np.array([2e30, 2e30, 2e30]), [149597871000*1.1, 0., 0.], 1000)[0]
+    x1 = random.random()
+    y1 = random.random()
+    x2 = random.random()
+    y2 = random.random()
+    x3 = random.random()
+    y3 = random.random()
+    x4 = random.random()
+    y4 = random.random()
+    x5 = random.random()
+    y5 = random.random()
+    x6 = random.random()
+    y6 = random.random()
+    x7 = random.random()
+    y7 = random.random()
+    x8 = random.random()
+    y8 = random.random()
+    x9 = random.random()
+    y9 = random.random()
+    x10 = random.random()
+    y10 = random.random()
+    x11 = random.random()
+    y11 = random.random()
+    x12 = random.random()
+    y12 = random.random()
+    x13 = random.random()
+    y13 = random.random()
+    x14 = random.random()
+    y14 = random.random()
+    angles, y_force = save_fig([np.array([1.72*10**9*x1, 1.72*10**9*math.sqrt(1-x1**2)*y1, 1.72*10**9*math.sqrt(1-x1**2)*math.sqrt(1-y1**2)]),
+                                np.array([2.36*10**9*x2, 2.36*10**9*math.sqrt(1-x2**2)*y2, 2.36*10**9*math.sqrt(1-x2**2)*math.sqrt(1-y2**2)]),
+                                np.array([3.34*10**9*x3, 3.34*10**9*math.sqrt(1-x3**2)*y3, 3.34*10**9*math.sqrt(1-x3**2)*math.sqrt(1-y3**2)]),
+                                np.array([4.37*10**9*x4, 4.37*10**9*math.sqrt(1-x4**2)*y4, 4.37*10**9*math.sqrt(1-x4**2)*math.sqrt(1-y4**2)]), 
+                                np.array([5.76*10**9*x5, 5.76*10**9*math.sqrt(1-x5**2)*y5, 5.76*10**9*math.sqrt(1-x5**2)*math.sqrt(1-y5**2)]), 
+                                np.array([7.02*10**9*x6, 7.02*10**9*math.sqrt(1-x6**2)*y6, 7.02*10**9*math.sqrt(1-x6**2)*math.sqrt(1-y6**2)]), 
+                                np.array([9.26*10**9*x7, 9.26*10**9*math.sqrt(1-x7**2)*y7, 9.26*10**9*math.sqrt(1-x7**2)*math.sqrt(1-y7**2)])], 
+
+                               [np.array([8.3*10**4*x8, 8.3*10**4*math.sqrt(1-x8**2)*y8, 8.3*10**4*math.sqrt(1-x8**2)*math.sqrt(1-y8**2)]),
+                                np.array([7.1*10**4*x9, 7.1*10**4*math.sqrt(1-x9**2)*y9, 7.1*10**4*math.sqrt(1-x9**2)*math.sqrt(1-y9**2)]),
+                                np.array([5.9*10**4*x10, 5.9*10**4*math.sqrt(1-x10**2)*y10, 5.9*10**4*math.sqrt(1-x10**2)*math.sqrt(1-y10**2)]),
+                                np.array([5.2*10**4*x11, 5.2*10**4*math.sqrt(1-x11**2)*y11, 5.2*10**4*math.sqrt(1-x11**2)*math.sqrt(1-y11**2)]),
+                                np.array([4.5*10**4*x12, 4.5*10**4*math.sqrt(1-x12**2)*y12, 4.5*10**4*math.sqrt(1-x12**2)*math.sqrt(1-y12**2)]),
+                                np.array([4.1*10**4*x13, 4.1*10**4*math.sqrt(1-x13**2)*y13, 4.1*10**4*math.sqrt(1-x13**2)*math.sqrt(1-y13**2)]),
+                                np.array([3.6*10**4*x14, 3.6*10**4*math.sqrt(1-x14**2)*y14, 3.6*10**4*math.sqrt(1-x14**2)*math.sqrt(1-y14**2)])], 2.2E-5, np.array([8.18E24, 7.83E24, 2.33E24, 4.12E24, 6.21E24, 7.88E24, 1.97E24]), [3.4E+9, 0., 0.], 1000)
     radius = 149597871000*1.1
     ringworld_velocity = np.sqrt(1.1*149597871000*9.81)
-    y_force = save_fig([np.array([-1.690367255730857E+10, -6.761862842133108E+10, -3.975545184741601E+09]),np.array([-8.657290834062675E+10, 6.344380291912919E+10, 5.866856370652959E+09]),np.array([1.431795025515026E+11, 4.265690992143974E+10, -3.681308152420446E+06])], [np.array([3.748040901281054E+04, -9.368235025154132E+03, -4.203286286629456E+03]),np.array([-2.083840702699918E+04,-2.842395145065711E+04,8.118746856672274E+02]),np.array([-8.978544418765617E+03,2.842892665702806E+04,-2.107282487841644])], 8.53586332/10**6, np.array([2e30, 2e30, 2e30]), [149597871000*1.1, 0., 0.], 1000)[0]
     # Integrate to get velocity map
     print(angles)
     print(radius)
@@ -210,7 +260,5 @@ if __name__ == "__main__": # omega = 8.53586332E-6, i_position, i_velocity, omeg
     print(f"Arc-length range: {arc_lengths[0]:.1f} to {arc_lengths[-1]:.1f}")
     print(f"Velocity range: {velocity_map.min():.3f} to {velocity_map.max():.3f}")
     print(f"Final velocity: {velocity_map[-1]:.3f}")
-    
     # Uncomment to plot results
     plot_velocity_results(angles, y_force, velocity_map, radius, ringworld_velocity)
-

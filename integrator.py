@@ -157,7 +157,7 @@ def integrate_ringworld_velocity(y_force, angles, radius, ringworld_velocity, no
     
     return velocity_map, arc_lengths
 
-def plot_velocity_results(angles, y_force, velocity_map, radius, ringworld_velocity):
+def plot_velocity_results(angles1, angles2, angles3, angles4, y_force1, y_force2, y_force3, y_force4, velocity_map1, velocity_map2, velocity_map3, velocity_map4, radius, ringworld_velocity):
     """
     Utility function to plot the force input and velocity output.
     
@@ -174,24 +174,37 @@ def plot_velocity_results(angles, y_force, velocity_map, radius, ringworld_veloc
     ringworld_velocity : float
         Ringworld orbital velocity
     """
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8))
+    # 1 is TRAPPIST-1, 2 is Alpha Centauri, 3 is Sol, 4 is Proxima Centauri
+    fig, (ax1,ax2) = plt.subplots(2, 1, figsize=(10, 8))
     fontsize = 16
     label_fontsize = 18
     tick_fontsize = 14
-    ax1.plot(np.degrees(angles), y_force, 'b-', linewidth=2)
+    ax1.plot(np.degrees(angles3), y_force3, 'b-', label="Sol", linewidth=2)
     ax1.set_xlabel('Angle (degrees)', fontsize=label_fontsize)
-    ax1.set_ylabel('Tangential Force', fontsize=label_fontsize)
+    ax1.set_ylabel('Tangential Force (m/s^2)', fontsize=label_fontsize)
     ax1.tick_params(axis='both', labelsize=tick_fontsize)
     ax1.text(-0.1, 1.05, '(a)', transform=ax1.transAxes,
              fontsize=fontsize, fontweight='bold', va='top', ha='right')
-    ax2.plot(np.degrees(angles), velocity_map, 'r-', linewidth=2)
+    ax2.plot(np.degrees(angles3), velocity_map3, 'b-', label="Sol", linewidth=2)
     ax2.set_xlabel('Angle (degrees)', fontsize=label_fontsize)
-    ax2.set_ylabel('Velocity Perturbation', fontsize=label_fontsize)
-    ax2.axhline(y=0, color='k', linestyle='--', alpha=0.5, label='Zero average')
+    ax2.set_ylabel('Velocity Perturbation (m/s)', fontsize=label_fontsize)
     ax2.tick_params(axis='both', labelsize=tick_fontsize)
     ax2.legend(fontsize=fontsize)
     ax2.text(-0.1, 1.05, '(b)', transform=ax2.transAxes,
              fontsize=fontsize, fontweight='bold', va='top', ha='right')
+    ax1.plot(np.degrees(angles2), y_force2, 'k-', label = "Alpha Centauri", linewidth=2)
+    ax2.plot(np.degrees(angles2), velocity_map2, 'k-', label = "Alpha Centauri", linewidth=2)
+    ax1.plot(np.degrees(angles4), y_force4, 'm-', label="Proxima Centauri", linewidth=2)
+    ax2.plot(np.degrees(angles4), velocity_map4, 'm-', label="Proxima Centauri", linewidth=2)
+    ax1.plot(np.degrees(angles1), y_force1, 'y-', label="TRAPPIST-1", linewidth=2)
+    ax2.plot(np.degrees(angles1), velocity_map1, 'y-', label="TRAPPIST-1", linewidth=2)
+    ax2.axhline(y=0, color='k', linestyle='--', alpha=0.5, label='Zero average')
+
+    ax1.set_yscale('symlog', linthresh=1e-7)
+    ax2.set_yscale('symlog', linthresh=4e-3)
+    ax1.legend(loc = 'upper right', fontsize = 'medium')
+    ax2.legend(loc = 'upper right', fontsize = 'medium')
+
 
     for ax in [ax1, ax2]:
         ax.spines['top'].set_visible(False)
@@ -205,13 +218,14 @@ def plot_velocity_results(angles, y_force, velocity_map, radius, ringworld_veloc
 
 
 if __name__ == "__main__": # omega = 8.53586332E-6, i_position, i_velocity, omega, mass, rw_position, N
+    # 1 is TRAPPIST-1, 2 is Alpha Centauri, 3 is Sol, 4 is Proxima Centauri
     x1 = random.random()
     y1 = random.random()
     x2 = random.random()
     y2 = random.random()
     x3 = random.random()
     y3 = random.random()
-    x4 = random.random()
+    x4 = random.random()``
     y4 = random.random()
     x5 = random.random()
     y5 = random.random()
@@ -233,7 +247,7 @@ if __name__ == "__main__": # omega = 8.53586332E-6, i_position, i_velocity, omeg
     y13 = random.random()
     x14 = random.random()
     y14 = random.random()
-    angles, y_force = save_fig([np.array([1.72*10**9*x1, 1.72*10**9*math.sqrt(1-x1**2)*y1, 1.72*10**9*math.sqrt(1-x1**2)*math.sqrt(1-y1**2)]),
+    angles1, y_force1 = save_fig([np.array([1.72*10**9*x1, 1.72*10**9*math.sqrt(1-x1**2)*y1, 1.72*10**9*math.sqrt(1-x1**2)*math.sqrt(1-y1**2)]),
                                 np.array([2.36*10**9*x2, 2.36*10**9*math.sqrt(1-x2**2)*y2, 2.36*10**9*math.sqrt(1-x2**2)*math.sqrt(1-y2**2)]),
                                 np.array([3.34*10**9*x3, 3.34*10**9*math.sqrt(1-x3**2)*y3, 3.34*10**9*math.sqrt(1-x3**2)*math.sqrt(1-y3**2)]),
                                 np.array([4.37*10**9*x4, 4.37*10**9*math.sqrt(1-x4**2)*y4, 4.37*10**9*math.sqrt(1-x4**2)*math.sqrt(1-y4**2)]), 
@@ -248,17 +262,69 @@ if __name__ == "__main__": # omega = 8.53586332E-6, i_position, i_velocity, omeg
                                 np.array([4.5*10**4*x12, 4.5*10**4*math.sqrt(1-x12**2)*y12, 4.5*10**4*math.sqrt(1-x12**2)*math.sqrt(1-y12**2)]),
                                 np.array([4.1*10**4*x13, 4.1*10**4*math.sqrt(1-x13**2)*y13, 4.1*10**4*math.sqrt(1-x13**2)*math.sqrt(1-y13**2)]),
                                 np.array([3.6*10**4*x14, 3.6*10**4*math.sqrt(1-x14**2)*y14, 3.6*10**4*math.sqrt(1-x14**2)*math.sqrt(1-y14**2)])], 2.2E-5, np.array([8.18E24, 7.83E24, 2.33E24, 4.12E24, 6.21E24, 7.88E24, 1.97E24]), [3.4E+9, 0., 0.], 1000)
+    x1 = random.random()
+    y1 = random.random()
+    x2 = random.random()
+    y2 = random.random()
+    x3 = random.random()
+    y3 = random.random()
+    x4 = random.random()
+    y4 = random.random()
+    angles2, y_force2 = save_fig([np.array([3.25*10**12*x1, 3.25*10**12*math.sqrt(1-x1**2)*y1, 3.25*10**12*math.sqrt(1-x1**2)*math.sqrt(1-y1**2)]),
+                                np.array([1.945*10**15*x2, 1.945*10**15*math.sqrt(1-x2**2)*y2, 1.945*10**15*math.sqrt(1-x2**2)*math.sqrt(1-y2**2)])], 
+
+                               [np.array([5200*x3, 5200*math.sqrt(1-x3**2)*y3, 5200*math.sqrt(1-x3**2)*math.sqrt(1-y3**2)]),
+                                np.array([309*x4, 309*math.sqrt(1-x4**2)*y4, 309*math.sqrt(1-x4**2)*math.sqrt(1-y4**2)])], 2E-6, np.array([2.19E30, 2.43E29]), [1.06E11, 0., 0.], 1000)
+    angles3, y_force3 = save_fig([np.array([-1.690367255730857E+10, -6.761862842133108E+10, -3.975545184741601E+09]),np.array([-8.657290834062675E+10, 6.344380291912919E+10, 5.866856370652959E+09]),np.array([1.431795025515026E+11, 4.265690992143974E+10, -3.681308152420446E+06]), np.array([-1.222736918585425E+11, -1.936980852099699E+11, -1.060706768727213E+09]), np.array([-1.620220057328354E+11, 7.580427870121850E+11, 4.761201117259860E+08]), np.array([1.426350320271618E+12, -3.056008428888809E+10, -5.624474951631455E+10]), np.array([1.520413537345293E+12,2.490416894102039E+12,-1.046532352987754E+10]), np.array([4.469651652396883E+12, 3.842412215808669E+10, -1.037907155122914E+11])], 
+                            [np.array([3.748040901281054E+04, -9.368235025154132E+03, -4.203286286629456E+03]),np.array([-2.083840702699918E+04,-2.842395145065711E+04,8.118746856672274E+02]),np.array([-8.978544418765617E+03,2.842892665702806E+04,-2.107282487841644]), np.array([2.140282398794097E+04,-1.085567571073013E+04, -7.523319408541229E+02]), np.array([-1.293951528469888E+04, -2.120838557000888E+03, 2.983633291932282E+02]), np.array([-3.354495346125045E+02, 9.637840053460994E+03, -1.545121165018060E+02]), np.array([-5.875598373949423E+03, 3.232193423003962E+03, 8.804866934798827E+01]), np.array([-9.396658697775445E+01, 5.467997908101429E+03, -1.111796140349235E+02])], 8.53586332E-06, np.array([3.28E+23, 4.87E+24, 5.97E+24, 6.419E+23, 1.899E+27, 5.68E+26, 8.685E+25, 1.024E+26]), [149597871000*1.1, 0., 0.], 1000)
+    x1 = random.random()
+    y1 = random.random()
+    x2 = random.random()
+    y2 = random.random()
+    x3 = random.random()
+    y3 = random.random()
+    x4 = random.random()
+    y4 = random.random()
+    angles4, y_force4 = save_fig([np.array([7255496728.5*x1, 7255496728.5*math.sqrt(1-x1**2)*y1, 7255496728.5*math.sqrt(1-x1**2)*math.sqrt(1-y1**2)]),
+                                np.array([4309914654.6*x2, 4309914654.6*math.sqrt(1-x2**2)*y2, 4309914654.6*math.sqrt(1-x2**2)*math.sqrt(1-y2**2)])], 
+
+                               [np.array([4.7*10**4*x3, 4.7*10**4*math.sqrt(1-x3**2)*y3, 4.7*10**4*math.sqrt(1-x3**2)*math.sqrt(1-y3**2)]),
+                                np.array([6.2*10**4*x4, 6.2*10**4*math.sqrt(1-x4**2)*y4, 6.2*10**4*math.sqrt(1-x4**2)*math.sqrt(1-y4**2)])], 9E-7, np.array([6.3E24,1.6E24]), [6.2E9, 0., 0.], 1000)
+
     radius = 149597871000*1.1
     ringworld_velocity = np.sqrt(1.1*149597871000*9.81)
     # Integrate to get velocity map
-    print(angles)
-    print(radius)
-    velocity_map, arc_lengths = integrate_ringworld_velocity(y_force, angles, radius, ringworld_velocity)
+    velocity_map1, arc_lengths1 = integrate_ringworld_velocity(y_force1, angles1, radius, ringworld_velocity)
+    print(f"Integration complete!")
+    print(f"Angle range: {np.degrees(angles1[0]):.1f}° to {np.degrees(angles1[-1]):.1f}°")
+    print(f"Arc-length range: {arc_lengths1[0]:.1f} to {arc_lengths1[-1]:.1f}")
+    print(f"Velocity range: {velocity_map1.min():.3f} to {velocity_map1.max():.3f}")
+    print(f"Final velocity: {velocity_map1[-1]:.3f}")
+
+    velocity_map2, arc_lengths2 = integrate_ringworld_velocity(y_force2, angles2, radius, ringworld_velocity)
     
     print(f"Integration complete!")
-    print(f"Angle range: {np.degrees(angles[0]):.1f}° to {np.degrees(angles[-1]):.1f}°")
-    print(f"Arc-length range: {arc_lengths[0]:.1f} to {arc_lengths[-1]:.1f}")
-    print(f"Velocity range: {velocity_map.min():.3f} to {velocity_map.max():.3f}")
-    print(f"Final velocity: {velocity_map[-1]:.3f}")
+    print(f"Angle range: {np.degrees(angles2[0]):.1f}° to {np.degrees(angles2[-1]):.1f}°")
+    print(f"Arc-length range: {arc_lengths2[0]:.1f} to {arc_lengths2[-1]:.1f}")
+    print(f"Velocity range: {velocity_map2.min():.3f} to {velocity_map2.max():.3f}")
+    print(f"Final velocity: {velocity_map2[-1]:.3f}")
+
+    velocity_map3, arc_lengths3 = integrate_ringworld_velocity(y_force3, angles3, radius, ringworld_velocity)
+    
+    print(f"Integration complete!")
+    print(f"Angle range: {np.degrees(angles3[0]):.1f}° to {np.degrees(angles3[-1]):.1f}°")
+    print(f"Arc-length range: {arc_lengths3[0]:.1f} to {arc_lengths3[-1]:.1f}")
+    print(f"Velocity range: {velocity_map3.min():.3f} to {velocity_map3.max():.3f}")
+    print(f"Final velocity: {velocity_map3[-1]:.3f}")
+
+    velocity_map4, arc_lengths4 = integrate_ringworld_velocity(y_force4, angles4, radius, ringworld_velocity)
+    
+    print(f"Integration complete!")
+    print(f"Angle range: {np.degrees(angles4[0]):.1f}° to {np.degrees(angles4[-1]):.1f}°")
+    print(f"Arc-length range: {arc_lengths4[0]:.1f} to {arc_lengths4[-1]:.1f}")
+    print(f"Velocity range: {velocity_map4.min():.3f} to {velocity_map4.max():.3f}")
+    print(f"Final velocity: {velocity_map4[-1]:.3f}")
+
+
     # Uncomment to plot results
-    plot_velocity_results(angles, y_force, velocity_map, radius, ringworld_velocity)
+    plot_velocity_results(angles1, angles2, angles3, angles4, y_force1, y_force2, y_force3, y_force4, velocity_map1, velocity_map2, velocity_map3, velocity_map4, radius, ringworld_velocity)

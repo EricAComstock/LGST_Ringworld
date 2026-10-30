@@ -250,7 +250,12 @@ def compute_motion(initial_position, initial_velocity, radius, gravity, t_max, d
     """
     initial_position = np.array(initial_position, dtype=float)
     initial_velocity = np.array(initial_velocity, dtype=float)
-
+    if (initial_position.shape != (3,) or initial_velocity.shape != (3,)
+            or not np.isfinite(initial_position).all() or not np.isfinite(initial_velocity).all()):
+        raise ValueError("Initial position and velocity must each contain three finite values")
+    if (not np.isfinite([radius, gravity, t_max, dt]).all()
+            or radius <= 0 or gravity < 0 or t_max <= 0 or dt <= 0):
+        raise ValueError("Require finite radius > 0, gravity >= 0, t_max > 0, and dt > 0")
     # Calculate angular velocity from radius and gravity
     omega            = calculate_omega(radius, gravity)
 
@@ -258,7 +263,8 @@ def compute_motion(initial_position, initial_velocity, radius, gravity, t_max, d
     initial_state    = np.concatenate((initial_position, initial_velocity, [0,0]))
 
     t_span  = (0, t_max)
-    t_eval  = np.arange(0, t_max + dt / 2, dt)
+    t_eval  = np.arange(0, t_max, dt)
+    t_eval  = np.append(t_eval[t_eval < t_max], t_max)
 
     # Solve the equations of motion using RK45
     solution = solve_ivp(
@@ -271,7 +277,14 @@ def compute_motion(initial_position, initial_velocity, radius, gravity, t_max, d
         rtol=1e-12,
         atol=1e-12
     ) 
+    
     # Extract the final state
+    if not solution.success:
+        raise RuntimeError(f"Trajectory integration failed: {solution.message}")
+    if (len(solution.t) == 0 or solution.t[-1] != t_max
+            or solution.y.shape != (len(initial_state), len(solution.t))
+            or not np.isfinite(solution.y).all()):
+        raise RuntimeError("Trajectory integration returned incomplete or nonfinite output")
     final_position = solution.y[:3, -1]
     final_velocity = solution.y[3:6, -1]
 

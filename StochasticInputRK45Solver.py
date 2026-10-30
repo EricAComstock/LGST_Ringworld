@@ -18,7 +18,8 @@ from SolverSharedCodePlusSolar import compute_motion, SSCPSVarInput
 from StochasticInput import stochastic_initial_conditions, SIVarInput
 from TrajectoryClassification import classify_trajectory, TCVarInput
 from LeakRate import LRVarInput
-
+import StochasticInput
+import TrajectoryClassification
 
 
 def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100,
@@ -45,7 +46,12 @@ def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100,
     results  DataFrame containing all particle simulation results
     """
     all_data = []
-
+    T, y_min, y_max, z_length = (StochasticInput.T, StochasticInput.y_min,
+                                StochasticInput.y_max, StochasticInput.z_length)
+    alpha, beta, y_floor = (TrajectoryClassification.alpha,
+                            TrajectoryClassification.beta, TrajectoryClassification.y_floor)
+    if comp_list is None:
+        comp_list = [("O2", 2.6566962e-26 * 2, 0, 100)]
     print(f"Processing {num_particles} particles...")
 
     # Create plots if requested
@@ -71,7 +77,7 @@ def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100,
         # Generate initial conditions
         initial_state = stochastic_initial_conditions(T, y_min, y_max, z_length, comp_list)
         initial_position = initial_state[0:3]
-        initial_velocity = initial_state[4:7]
+        initial_velocity = initial_state[3:6]
 
         try:
             # Compute trajectory
@@ -120,6 +126,7 @@ def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100,
         except Exception as e:
             print(f"Error processing particle {i + 1}: {e}")
             traceback.print_exc()
+            raise
 
     # Create results DataFrame
     df = pd.DataFrame(all_data)

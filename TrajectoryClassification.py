@@ -45,7 +45,19 @@ def TCVarInput(z_length_i, beta_i, y_floor_i, alpha_i, y_min_i, y_max_i):
     y_max = y_max_i  # Max spawn height
 
 
-def classify_trajectory(alpha, beta, y_floor, trajectories):
+def _result_at_cutoff(recaptured, escaped, r, z, alpha, beta):
+    if recaptured:
+        return 'recaptured'
+    if escaped:
+        return 'escaped'
+    if abs(z) <= beta and r < alpha:
+        return 'resimulate'
+    if abs(z) <= beta and r > alpha:
+        return 'recaptured'
+    return 'escaped'
+
+
+def classify_trajectory(alpha, beta, y_floor, trajectories, *, return_history=False):
     """
     Classifies particle trajectory based on path and final position.
     Determines if particle escaped, was recaptured, or needs resimulation.
@@ -57,35 +69,32 @@ def classify_trajectory(alpha, beta, y_floor, trajectories):
     beta         Lateral boundary threshold [m]
     y_floor      Minimum y value (ringworld floor) [m]
     trajectories DataFrame with columns [x, y, z] coordinates
+    return_history  Include one classification for each sample after the initial row
 
     Outputs:
     beta_crossings  Number of beta boundary crossings [int]
     result          Classification: 'escaped', 'recaptured', or 'resimulate' [string]
+    history         Classification at each sampled cutoff (only if requested)
 
-    Classification rules:
-    - Escaped: Goes below alpha while outside beta, or ends outside beta
-    - Recaptured: Ends below alpha within beta, or hits beta while below alpha
-    - Resimulate: Ends above alpha within beta (undetermined fate)
+    Each cutoff uses the boundary flags accumulated so far and the position at
+    that sample.
     """
     # Initialize classification flags
     recaptured = False
     escaped = False
-    resimulate = False
     beta_crossings = 0
+    history = []
+    r = np.sqrt(trajectories.iloc[0, 0] ** 2 + trajectories.iloc[0, 1] ** 2)
+    z = trajectories.iloc[0, 2]
 
     # Analyze trajectory timestep by timestep
     for i in range(1, len(trajectories)):
+        r_prev, z_prev = r, z
         # Current position
         x = trajectories.iloc[i, 0]  # x-coordinate
         y = trajectories.iloc[i, 1]  # y-coordinate
         z = trajectories.iloc[i, 2]  # z-coordinate
         r = np.sqrt(x ** 2 + y ** 2)  # Radial distance
-
-        # Previous position
-        x_prev = trajectories.iloc[i - 1, 0]  # Previous x
-        y_prev = trajectories.iloc[i - 1, 1]  # Previous y
-        z_prev = trajectories.iloc[i - 1, 2]  # Previous z
-        r_prev = np.sqrt(x_prev ** 2 + y_prev ** 2)  # Previous radius
 
         # Check if particle entered side of ringworld
         if abs(z) >= beta and r > alpha and not recaptured and not escaped:
@@ -104,23 +113,12 @@ def classify_trajectory(alpha, beta, y_floor, trajectories):
         if abs(z) <= beta and abs(z_prev) > beta:
             beta_crossings += 1
 
-    # Classify particles that didn't hit ending conditions during trajectory
-    if not recaptured and not escaped:
-        if abs(z) <= beta and r < alpha:  # Inside bounds, below atmosphere
-            resimulate = True
-        elif abs(z) <= beta and r > alpha:  # Inside bounds, above atmosphere
-            recaptured = True
-        else:  # Outside lateral bounds
-            escaped = True
+        if return_history:
+            history.append(_result_at_cutoff(recaptured, escaped, r, z, alpha, beta))
 
-    # Determine final result
-    if recaptured:
-        result = 'recaptured'
-    elif escaped:
-        result = 'escaped'
-    else:
-        result = 'resimulate'
-
+    result = _result_at_cutoff(recaptured, escaped, r, z, alpha, beta)
+    if return_history:
+        return beta_crossings, result, history
     return beta_crossings, result
 
 

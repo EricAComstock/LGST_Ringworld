@@ -17,13 +17,53 @@ import traceback
 from SolverSharedCodePlusSolar import compute_motion, SSCPSVarInput
 from StochasticInput import stochastic_initial_conditions, SIVarInput
 from TrajectoryClassification import classify_trajectory, TCVarInput
-from LeakRate import LRVarInput
+from LeakRate import LRVarInput, lifetime_years
 import StochasticInput
 import TrajectoryClassification
 
 
+def _save_summary_plots(times, counts, timestamp):
+    fig, ax = plt.subplots(figsize=(8, 5))
+    for outcome, label in (('escaped', 'Escaped'), ('recaptured', 'Recaptured'),
+                           ('resimulate', 'Indeterminate')):
+        ax.step(times, counts[outcome], where='post', label=label,
+                marker='o' if len(times) == 1 else None)
+    ax.set(xscale='log', xlabel='Simulation time cutoff [s]', ylabel='Particle count',
+           title='Particle outcomes by simulation time')
+    ax.set_ylim(bottom=0)
+    ax.legend()
+    ax.grid(axis='y', alpha=0.25)
+    time_limits = ax.get_xlim()
+    outcome_filename = f'particle_outcomes_{timestamp}.pdf'
+    fig.tight_layout()
+    fig.savefig(outcome_filename)
+    plt.close(fig)
+
+    years = lifetime_years(counts['escaped'], counts['recaptured'])
+    finite = np.isfinite(years)
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.step(times, years, where='post', color='C0')
+    if finite[-1] and (len(times) == 1 or not finite[-2]):
+        ax.scatter(times[-1], years[-1], color='C0', s=16)
+    title = 'Estimated atmospheric lifetime'
+    if np.any(finite & (counts['resimulate'] > 0)):
+        title += '\nProvisional at cutoffs with indeterminate particles'
+    ax.set(xscale='log', xlim=time_limits, xlabel='Simulation time cutoff [s]',
+           ylabel='Estimated lifetime [years]', title=title)
+    if not finite.any():
+        ax.text(0.5, 0.5, 'A finite estimate requires escaped and recaptured particles.',
+                transform=ax.transAxes, ha='center', va='center')
+    ax.grid(axis='y', alpha=0.25)
+    lifetime_filename = f'atmospheric_lifetime_{timestamp}.pdf'
+    fig.tight_layout()
+    fig.savefig(lifetime_filename)
+    plt.close(fig)
+    print(f'\nSummary plots saved to: {outcome_filename}, {lifetime_filename}')
+
+
 def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100,
-         save_results=True, show_plots=False, find_leak_rate=True, comp_list = None):
+         save_results=True, show_plots=False, find_leak_rate=True, comp_list = None,
+         *, save_summary_plots=False):
     """
     Main simulation function for particle trajectory analysis.
 
@@ -41,6 +81,9 @@ def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100,
     show_plots      Whether to display trajectory plots [bool]
     find_leak_rate  Whether to calculate leak rate [bool]
     comp_list       Composition of the atmosphere [list of tuples] (Name, mass, charge, number density) [String, kg, C, n/m^3]
+    save_summary_plots  Save outcome and lifetime PDFs to the working directory [bool]
+
+    Call LRVarInput before requesting a leak rate or summary plots.
 
     Outputs:
     results  DataFrame containing all particle simulation results
@@ -92,7 +135,20 @@ def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100,
             solution_df = pd.DataFrame(trajectory, columns=[0, 1, 2])
 
             # Classify trajectory
-            beta_crossings, result = classify_trajectory(alpha, beta, y_floor, solution_df)
+            if save_summary_plots:
+                beta_crossings, result, history = classify_trajectory(
+                    alpha, beta, y_floor, solution_df, return_history=True
+                )
+                # All particles share the same output grid. Omit zero on the log axis.
+                if i == 0:
+                    sample_times = solution.t[1:]
+                    counts = {outcome: np.zeros(len(sample_times), dtype=int)
+                              for outcome in ('escaped', 'recaptured', 'resimulate')}
+                history = np.asarray(history)
+                for outcome, outcome_counts in counts.items():
+                    outcome_counts += history == outcome
+            else:
+                beta_crossings, result = classify_trajectory(alpha, beta, y_floor, solution_df)
 
             # Store particle data
             particle_data = {
@@ -130,6 +186,9 @@ def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100,
 
     # Create results DataFrame
     df = pd.DataFrame(all_data)
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    if save_summary_plots and not df.empty:
+        _save_summary_plots(sample_times, counts, timestamp)
 
     # Add reference lines to plots
     if show_plots:
@@ -151,7 +210,6 @@ def main(radius, gravity, t_max, dt, is_rotating=False, num_particles=100,
     # Save results if requested
     if save_results and not df.empty:
         # Create unique filename with timestamp
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f'particle_data_{timestamp}.xlsx'
 
         try:
@@ -246,5 +304,6 @@ if __name__ == "__main__":
         is_rotating=False,              # Solar gravity disabled
         num_particles=num_particles,
         find_leak_rate=True,            # Calculate atmospheric lifetime
-        comp_list=comp_list
+        comp_list=comp_list,
+        save_summary_plots=True
     )

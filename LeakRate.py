@@ -7,7 +7,7 @@ V1.1, Edwin Ontiveros, June 28, 2025
 V1.0, Nick Gaug, April 29, 2025
 """
 
-import math
+import numpy as np
 import pandas as pd
 
 
@@ -40,6 +40,19 @@ def LRVarInput(P_0_i, K_b_i, T_i, m_i, g_i, n_0_i, d_i):
     d = d_i  # Molecular diameter
 
 
+def lifetime_years(escaped, recaptured):
+    """Calculate lifetime for counts or arrays, using NaN for undefined estimates."""
+    escaped, recaptured = np.broadcast_arrays(escaped, recaptured)
+    valid = (escaped > 0) & (recaptured > 0)
+    years = np.full(escaped.shape, np.nan)
+    if valid.any():
+        f_escape = escaped[valid] / recaptured[valid]
+        n = 429.7 / 1e12 / m  # Molecular density at exobase
+        phi_m = n * m * 340 * f_escape  # Mass flux
+        years[valid] = (P_0 / g) / phi_m / 86400 / 365.2425
+    return years.item() if years.ndim == 0 else years
+
+
 def find_lifetime(file):
     """
     Calculate atmospheric lifetime based on particle escape rates.
@@ -54,31 +67,11 @@ def find_lifetime(file):
     result  Lifetime result message [string]
     """
     # Load particle data from Excel file
-    result = ""
     df = pd.read_excel(file, sheet_name='Particles')
-    target_words = ["resimulate", "recaptured", "escaped"]
-    counts = [int((df['Result'].astype(str) == word).sum()) for word in target_words]
-
-    # Check for division by zero
-    if counts[1] == 0:
+    recaptured = int((df['Result'] == 'recaptured').sum())
+    escaped = int((df['Result'] == 'escaped').sum())
+    if recaptured == 0:
         return 'No particles recaptured; cannot calculate escape fraction'
-
-    # Calculate escape fraction
-    f_escape = counts[2] / counts[1]
-
-    # Calculate molecular parameters
-    sigma = 0.25 * math.pi * d ** 2  # Collision cross section
-    lam = (sigma * n_0) ** -1  # Mean free path
-    h_s = K_b * T / (m * g)  # Scale height
-    alt = h_s * math.log(h_s / lam)  # Exobase altitude
-    n = 429.7 / 1e12 / m  # Molecular density at exobase
-    phi_m = n * m * 340 * f_escape  # Mass flux
-
-    # Calculate lifetime
-    if phi_m == 0:
-        result = 'No particles escaped; lifetime indefinite'
-    else:
-        lifetime_years = (P_0 / g) / phi_m / 86400 / 365.2425
-        result = 'Lifetime: ' + str(lifetime_years) + ' yrs'
-
-    return result
+    if escaped == 0:
+        return 'No particles escaped; lifetime indefinite'
+    return f'Lifetime: {lifetime_years(escaped, recaptured)} yrs'
